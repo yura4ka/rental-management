@@ -121,7 +121,7 @@ public sealed class StartupSeedingTests
         Assert.True(await context.Properties.AnyAsync(p => p.Address.StreetAddress == "Preserve this old property"));
     }
 
-    private sealed class DatabaseFixture : IAsyncDisposable
+    internal sealed class DatabaseFixture : IAsyncDisposable
     {
         private readonly string database = "RentalManagement_SeedTests_" + Guid.NewGuid().ToString("N");
         private readonly string masterConnection;
@@ -164,7 +164,8 @@ public sealed class StartupSeedingTests
             command.CommandText = $"IF DB_ID(@name) IS NOT NULL BEGIN ALTER DATABASE [{database}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [{database}]; END";
             command.Parameters.AddWithValue("@name", database);
             await command.ExecuteNonQueryAsync();
-            Directory.Delete(keyPath);
+            // Login tests persist keys in this fixture's uniquely generated temporary directory.
+            if (Directory.Exists(keyPath)) Directory.Delete(keyPath, recursive: true);
         }
     }
 

@@ -10,10 +10,12 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.OpenApi;
 using RentalManagement.Api.Auth;
 using RentalManagement.Api.Contracts.Auth;
+using RentalManagement.Api.Contracts.Profiles;
 using RentalManagement.Api.Persistence;
 using RentalManagement.Api.Persistence.Seeding;
 using RentalManagement.Api.Services;
 using RentalManagement.Api.Services.Auth;
+using RentalManagement.Api.Services.Profiles;
 using RentalManagement.Api.Validation;
 
 namespace RentalManagement.Api.Infrastructure;
@@ -69,6 +71,12 @@ public static class ServiceConfiguration
         });
         ConfigureDataProtection(services, config, environment);
         services.AddScoped<AccountService>();
+        services.TryAddSingleton<TimeProvider>(TimeProvider.System);
+        services.AddScoped<ApplicantProfileService>();
+        services.AddScoped<IValidator<ApplicantInformationRequest>, ApplicantInformationRequestValidator>();
+        services.AddScoped<IValidator<ApplicantInformationCommand>, ApplicantInformationCommandValidator>();
+        services.AddScoped<IValidator<ResidenceHistoryRequest>, ResidenceHistoryRequestValidator>();
+        services.AddScoped<IValidator<ResidenceHistoryCommand>, ResidenceHistoryCommandValidator>();
         services.AddScoped<IValidator<SignupRequest>, SignupRequestValidator>();
         services.AddScoped<IValidator<SignupCommand>, SignupCommandValidator>();
         services.AddControllers().AddJsonOptions(options =>
@@ -99,6 +107,7 @@ public static class ServiceConfiguration
             });
             options.OperationFilter<AuthOpenApiFilter>();
             options.SchemaFilter<VersionOpenApiFilter>();
+            options.SchemaFilter<ProfileOpenApiFilter>();
         });
         return services;
     }
