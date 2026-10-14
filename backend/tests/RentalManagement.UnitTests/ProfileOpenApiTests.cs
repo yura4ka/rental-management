@@ -41,4 +41,35 @@ public sealed class ProfileOpenApiTests
         var policy = Assert.Single(typeof(ApplicantProfileController).GetCustomAttributes(typeof(AuthorizeAttribute), true).Cast<AuthorizeAttribute>());
         Assert.Equal(AccountRoles.Applicant, policy.Policy);
     }
+
+    [Fact]
+    public async Task AllControllerResponsesDistinguishSecurityFailuresFromProblemDetailsErrors()
+    {
+        var builder = WebApplication.CreateBuilder();
+        builder.Services.AddControllers().AddApplicationPart(typeof(ApplicantProfileController).Assembly);
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen(options =>
+            options.SwaggerDoc("v1", new OpenApiInfo { Title = "Test", Version = "v1" }));
+        await using var app = builder.Build();
+        var document = app.Services.GetRequiredService<ISwaggerProvider>().GetSwagger("v1");
+
+        // This document contains controller routes only, not Identity's native login/refresh endpoints.
+        foreach (var (path, item) in document.Paths)
+        foreach (var (method, operation) in item.Operations!)
+        foreach (var (status, response) in operation.Responses!)
+        {
+            if (status is "401" or "403" or "204")
+            {
+                Assert.True(response.Content is null || response.Content.Count == 0,
+                    $"{method} {path}: {status} must not promise a response body.");
+                continue;
+            }
+
+            var expected = status.StartsWith('2') ? "application/json" : "application/problem+json";
+            var content = Assert.Single(response.Content!);
+            Assert.True(content.Key == expected,
+                $"{method} {path}: {status} documents {content.Key}, expected {expected}.");
+            Assert.NotNull(content.Value.Schema);
+        }
+    }
 }

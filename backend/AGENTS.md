@@ -4,6 +4,12 @@
 
 These instructions apply to `backend/`. Follow [`../docs/specs/backend-architecture.md`](../docs/specs/backend-architecture.md) for architectural and behavioral requirements. Keep changes consistent with nearby code and scoped to the requested task.
 
+## Routes, controllers, and annotations
+
+- Group business routes under `/api` in feature-specific, thin controllers inheriting directly from `ControllerBase`; keep business rules and transactions in services. Use controller-level `[ApiController]`, `[Route]`, `[Authorize]` (with role policies where needed), and `[Tags]`, with HTTP methods and relative routes on actions.
+- Put shared response annotations on the controller and operation-specific responses on actions; document only supported statuses. Use typed `ProducesResponseType<T>` with explicit `application/json` for success and `ProblemDetails` with `application/problem+json` for business errors. Avoid controller-level `[Produces("application/json")]`, which overrides error media types in generated metadata.
+- Document standard Bearer 401/403 responses with `[ProducesResponseType(typeof(void), statusCode)]` so conventions do not infer a body. Preserve native Identity login/refresh behavior, and verify response statuses, schemas, and media types in OpenAPI tests.
+
 ## Verification
 
 Run commands from `backend/`. Use the pinned SDK and local EF tooling.

@@ -9,12 +9,11 @@ namespace RentalManagement.Api.Controllers;
 [Route("api/auth")]
 [Authorize]
 [Tags("Auth")]
-[Produces("application/json")]
 public sealed class AuthController(AccountService accounts) : ControllerBase
 {
     [HttpPost("signup")]
     [AllowAnonymous]
-    [ProducesResponseType<AccountResponse>(StatusCodes.Status201Created)]
+    [ProducesResponseType<AccountResponse>(StatusCodes.Status201Created, "application/json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status422UnprocessableEntity, "application/problem+json")]
     public async Task<ActionResult<AccountResponse>> Signup(SignupRequest request, CancellationToken cancellationToken)
@@ -24,15 +23,15 @@ public sealed class AuthController(AccountService accounts) : ControllerBase
     }
 
     [HttpGet("me")]
-    [ProducesResponseType<CurrentAccountResponse>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized, "application/problem+json")]
+    [ProducesResponseType<CurrentAccountResponse>(StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(void), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status503ServiceUnavailable, "application/problem+json")]
     public async Task<ActionResult<CurrentAccountResponse>> Me(CancellationToken cancellationToken) =>
         Ok(await accounts.MeAsync(User, cancellationToken));
 
     [HttpPost("logout")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized, "application/problem+json")]
+    [ProducesResponseType(typeof(void), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status503ServiceUnavailable, "application/problem+json")]
     public async Task<IActionResult> Logout()
     {
