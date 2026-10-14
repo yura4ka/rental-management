@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.OpenApi;
 using RentalManagement.Api.Auth;
 using RentalManagement.Api.Contracts.Auth;
+using RentalManagement.Api.Contracts.Inventory;
 using RentalManagement.Api.Contracts.Profiles;
 using RentalManagement.Api.Persistence;
 using RentalManagement.Api.Persistence.Seeding;
@@ -73,6 +74,12 @@ public static class ServiceConfiguration
         services.AddScoped<AccountService>();
         services.TryAddSingleton<TimeProvider>(TimeProvider.System);
         services.AddScoped<ApplicantProfileService>();
+        services.AddScoped<InventoryService>();
+        services.AddScoped<IValidator<CreatePropertyRequest>, CreatePropertyRequestValidator>();
+        services.AddScoped<IValidator<UpdatePropertyRequest>, UpdatePropertyRequestValidator>();
+        services.AddScoped<IValidator<CreateUnitRequest>, CreateUnitRequestValidator>();
+        services.AddScoped<IValidator<UpdateUnitRequest>, UpdateUnitRequestValidator>();
+        services.AddScoped<IValidator<ArchiveInventoryRequest>, ArchiveInventoryRequestValidator>();
         services.AddScoped<IValidator<ApplicantInformationRequest>, ApplicantInformationRequestValidator>();
         services.AddScoped<IValidator<ApplicantInformationCommand>, ApplicantInformationCommandValidator>();
         services.AddScoped<IValidator<ResidenceHistoryRequest>, ResidenceHistoryRequestValidator>();
@@ -108,6 +115,7 @@ public static class ServiceConfiguration
             options.OperationFilter<AuthOpenApiFilter>();
             options.SchemaFilter<VersionOpenApiFilter>();
             options.SchemaFilter<ProfileOpenApiFilter>();
+            options.SchemaFilter<InventoryOpenApiFilter>();
         });
         return services;
     }
