@@ -132,6 +132,7 @@ public sealed class Lease
 public sealed class DatabaseMetadata
 {
     public byte SingletonId { get; set; } = 1;
+    public int SeedVersion { get; set; }
     public Guid EnvironmentGeneration { get; set; }
     public DateTimeOffset InitializedAt { get; set; }
 }

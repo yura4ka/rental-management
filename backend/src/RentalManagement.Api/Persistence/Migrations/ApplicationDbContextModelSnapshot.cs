@@ -469,11 +469,16 @@ namespace RentalManagement.Api.Persistence.Migrations
                     b.Property<DateTimeOffset>("InitializedAt")
                         .HasColumnType("datetimeoffset(7)");
 
+                    b.Property<int>("SeedVersion")
+                        .HasColumnType("int");
+
                     b.HasKey("SingletonId");
 
                     b.ToTable("DatabaseMetadata", null, t =>
                         {
                             t.HasCheckConstraint("CK_DatabaseMetadata_InitializedAt_Utc", "[InitializedAt] IS NULL OR DATEPART(TZOFFSET, [InitializedAt]) = 0");
+
+                            t.HasCheckConstraint("CK_DatabaseMetadata_SeedVersion", "[SeedVersion] >= 0");
 
                             t.HasCheckConstraint("CK_DatabaseMetadata_Singleton", "[SingletonId] = 1");
                         });

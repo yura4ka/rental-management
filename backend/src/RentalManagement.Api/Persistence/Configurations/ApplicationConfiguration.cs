@@ -117,7 +117,11 @@ public sealed class DatabaseMetadataConfiguration : IEntityTypeConfiguration<Dat
 {
     public void Configure(EntityTypeBuilder<DatabaseMetadata> b)
     {
-        b.ToTable("DatabaseMetadata", t => t.HasCheckConstraint("CK_DatabaseMetadata_Singleton", "[SingletonId] = 1"));
+        b.ToTable("DatabaseMetadata", t =>
+        {
+            t.HasCheckConstraint("CK_DatabaseMetadata_Singleton", "[SingletonId] = 1");
+            t.HasCheckConstraint("CK_DatabaseMetadata_SeedVersion", "[SeedVersion] >= 0");
+        });
         b.HasKey(m => m.SingletonId);
         b.Property(m => m.SingletonId).ValueGeneratedNever();
     }

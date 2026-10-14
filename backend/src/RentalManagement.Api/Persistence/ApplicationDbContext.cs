@@ -9,6 +9,7 @@ namespace RentalManagement.Api.Persistence;
 public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
     : IdentityDbContext<IdentityUser<Guid>, IdentityRole<Guid>, Guid>(options)
 {
+    internal bool PreserveSeedInsertValues { get; set; }
     public DbSet<Property> Properties => Set<Property>();
     public DbSet<UnitType> UnitTypes => Set<UnitType>();
     public DbSet<Unit> Units => Set<Unit>();
@@ -48,6 +49,8 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         var now = DateTimeOffset.UtcNow;
         foreach (var entry in ChangeTracker.Entries().Where(e => e.State is EntityState.Added or EntityState.Modified))
         {
+            // Only the transactional seeder opts in; normal API writes retain automatic timestamps/versions.
+            if (PreserveSeedInsertValues && entry.State == EntityState.Added) continue;
             if (entry.Metadata.FindProperty("Version") is not null)
             {
                 var version = entry.Property("Version");

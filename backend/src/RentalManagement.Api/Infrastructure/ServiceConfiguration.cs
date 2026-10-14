@@ -11,6 +11,7 @@ using Microsoft.OpenApi;
 using RentalManagement.Api.Auth;
 using RentalManagement.Api.Contracts.Auth;
 using RentalManagement.Api.Persistence;
+using RentalManagement.Api.Persistence.Seeding;
 using RentalManagement.Api.Services;
 using RentalManagement.Api.Services.Auth;
 using RentalManagement.Api.Validation;
@@ -26,6 +27,8 @@ public static class ServiceConfiguration
         if (string.IsNullOrWhiteSpace(connectionString))
             throw new InvalidOperationException("Set ConnectionStrings:DefaultConnection through user secrets or environment configuration.");
         services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
+        services.AddScoped<DatabaseInitializer>();
+        services.AddScoped<DemonstrationSeeder>();
 
         services.AddAuthentication(IdentityConstants.BearerScheme)
             .AddBearerToken(IdentityConstants.BearerScheme);

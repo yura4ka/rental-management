@@ -5,6 +5,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApplication(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
+await using (var scope = app.Services.CreateAsyncScope())
+    await scope.ServiceProvider.GetRequiredService<DatabaseInitializer>().InitializeAsync();
 app.UseMiddleware<ApiErrorMiddleware>();
 app.UseStatusCodePages(async statusContext =>
 {

@@ -29,16 +29,34 @@ Compose reads `.env`; the API does **not**. Set the matching API connection stri
 dotnet user-secrets set 'ConnectionStrings:DefaultConnection' 'Server=localhost,1433;Database=RentalManagement;User Id=sa;Password=<your-local-password>;Encrypt=True;TrustServerCertificate=True' --project src/RentalManagement.Api
 ```
 
-Startup validates configuration but does not connect to SQL Server, create databases, run migrations, or seed records. Without a connection string, startup fails with a configuration message.
+Set the demo password through secrets as well (12–128 characters, not only whitespace):
 
-## Database setup — manual, when you are ready
+```bash
+dotnet user-secrets set 'Seeding:DemoPassword' '<your-demo-account-password>' --project src/RentalManagement.Api
+```
+
+The environment equivalents are `ConnectionStrings__DefaultConnection` and `Seeding__DemoPassword`. No demo password is committed or logged. The password is required when applying a new seed version; a restart with the already-applied version does not require it and never resets existing passwords.
+
+Startup connects to SQL Server, creates the target database if missing, applies migrations, and seeds before accepting requests. SQL Server must already be running. The configured SQL principal needs access to `master`, database-creation permission for first startup, and migration/write permissions on the target database. Use a non-system database name. Initialization failure aborts startup with a safe stage identifier; it is never ignored.
+
+## SQL Server — when you are ready
 
 **These commands have not been run as part of initialization.** Docker must be available before performing them:
 
 ```bash
 docker compose --env-file ../.env -f ../compose.yaml up -d sqlserver
-dotnet ef database update --project src/RentalManagement.Api --startup-project src/RentalManagement.Api
 ```
+API startup performs database creation and migrations automatically; manual `dotnet ef database update` is not required.
+
+## Verification without starting SQL Server
+
+```bash
+dotnet build RentalManagement.sln
+dotnet test tests/RentalManagement.UnitTests
+dotnet ef migrations has-pending-model-changes --project src/RentalManagement.Api --startup-project src/RentalManagement.Api
+```
+
+Real SQL Server integration tests are opt-in through `RENTAL_TEST_SQLSERVER`. When explicitly enabled, run `dotnet test tests/RentalManagement.IntegrationTests`. They create and drop uniquely named `RentalManagement_SeedTests_*` databases on the supplied server, require creation/drop permissions, and cover concurrent fresh startup, repeat startup/preservation, rollback/retry, and appending alongside older data. They do not start Docker themselves.
 
 ## Run the host API
 
