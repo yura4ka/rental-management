@@ -3,6 +3,16 @@ using System.Text.Json.Serialization;
 
 namespace RentalManagement.Api.Contracts.Operations;
 
+public interface ICreateResourceRequest
+{
+    Guid Id { get; }
+}
+
+public interface IUnitTargetRequest
+{
+    Guid UnitId { get; }
+}
+
 public abstract record OperationRequest
 {
     [JsonRequired]

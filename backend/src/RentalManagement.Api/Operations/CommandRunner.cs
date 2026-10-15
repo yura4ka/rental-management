@@ -26,7 +26,7 @@ public sealed class CommandRunner(ApplicationDbContext db, OperationAuthorizatio
         if (request.EnvironmentGeneration == Guid.Empty)
             throw new ApiException(400, "MalformedRequest", "Supply environmentGeneration.");
         var account = Guid.Parse(principal.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var fingerprint = CommandFingerprint.Compute(command.CommandType, command.TargetType, command.TargetId, command.Route, body);
+        var fingerprint = CommandFingerprint.Compute(command.CommandType, command.TargetType.ToString(), command.TargetId, command.Route, body);
         var started = Stopwatch.GetTimestamp();
         try
         {
@@ -49,7 +49,7 @@ public sealed class CommandRunner(ApplicationDbContext db, OperationAuthorizatio
             {
                 AccountId = account, OperationId = request.OperationId,
                 EnvironmentGeneration = request.EnvironmentGeneration, CommandType = command.CommandType,
-                TargetType = command.TargetType, TargetId = command.TargetId,
+                TargetType = command.TargetType.ToString(), TargetId = command.TargetId,
                 FingerprintVersion = CommandFingerprint.Version, RequestFingerprint = fingerprint
             };
             db.OperationReceipts.Add(receipt);
@@ -97,13 +97,7 @@ public sealed class CommandRunner(ApplicationDbContext db, OperationAuthorizatio
             receipt.HttpStatus = checked((short)status);
             receipt.ResponseSchemaVersion = 1;
             receipt.FinalizedAt = clock.GetUtcNow();
-            var scope = receipt.Outcome == "Accepted" ? command.CommandType switch
-            {
-                "Properties.Create" => new AuthorizationScope("Property", Guid.Parse(command.TargetId), "Owner"),
-                "Units.Create" => new AuthorizationScope("Unit", Guid.Parse(command.TargetId), "Owner"),
-                "Applications.Create" => new AuthorizationScope("Application", Guid.Parse(command.TargetId), "Applicant"),
-                _ => command.AuthorizationScope
-            } : command.AuthorizationScope;
+            var scope = receipt.Outcome == "Accepted" ? command.AcceptedAuthorizationScope : command.AuthorizationScope;
             receipt.ResponseJson = JsonSerializer.Serialize(new StoredResponse(
                 scope, JsonSerializer.SerializeToElement(responseBody, Json), location), Json);
             await db.SaveChangesAsync(ct);

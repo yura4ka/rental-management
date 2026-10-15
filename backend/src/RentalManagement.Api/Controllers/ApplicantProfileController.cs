@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RentalManagement.Api.Auth;
 using RentalManagement.Api.Contracts.Profiles;
+using RentalManagement.Api.Operations;
 using RentalManagement.Api.Services;
 
 namespace RentalManagement.Api.Controllers;
@@ -23,6 +24,8 @@ public sealed class ApplicantProfileController(ApplicantProfileService profiles)
         Ok(await profiles.ReadAsync(User, cancellationToken));
 
     [HttpPut("applicant-information")]
+    [BusinessCommand("ApplicantProfile.ReplaceInformation", Target = ResourceType.Profile, TargetId = IdSource.Account,
+        Scope = ResourceType.Account, ScopeId = IdSource.Account, Access = ResourceAccess.Applicant)]
     [ProducesResponseType<ApplicantProfileResponse>(StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict, "application/problem+json")]
@@ -31,6 +34,8 @@ public sealed class ApplicantProfileController(ApplicantProfileService profiles)
         CancellationToken cancellationToken) => Ok(await profiles.ReplaceInformationAsync(User, request, cancellationToken));
 
     [HttpPut("residence-history")]
+    [BusinessCommand("ApplicantProfile.ReplaceResidences", Target = ResourceType.Profile, TargetId = IdSource.Account,
+        Scope = ResourceType.Account, ScopeId = IdSource.Account, Access = ResourceAccess.Applicant)]
     [ProducesResponseType<ApplicantProfileResponse>(StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict, "application/problem+json")]

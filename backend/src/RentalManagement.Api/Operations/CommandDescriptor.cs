@@ -1,70 +1,41 @@
 using System.Security.Claims;
-using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
-using RentalManagement.Api.Contracts.Applications;
-using RentalManagement.Api.Contracts.Inventory;
 using RentalManagement.Api.Contracts.Operations;
-using RentalManagement.Api.Controllers;
-using RentalManagement.Api.Infrastructure;
 
 namespace RentalManagement.Api.Operations;
 
-public sealed record AuthorizationScope(string Type, Guid Id, string Access);
-public sealed record CommandDescriptor(string CommandType, string TargetType, string TargetId,
-    AuthorizationScope AuthorizationScope, IReadOnlyDictionary<string, string> Route)
+public sealed record AuthorizationScope(ResourceType Type, Guid Id, ResourceAccess Access);
+public sealed record CommandDescriptor(string CommandType, ResourceType TargetType, string TargetId,
+    AuthorizationScope AuthorizationScope, AuthorizationScope AcceptedAuthorizationScope,
+    IReadOnlyDictionary<string, string> Route)
 {
     public static CommandDescriptor From(ActionExecutingContext context, OperationRequest request)
     {
-        var action = (ControllerActionDescriptor)context.ActionDescriptor;
+        var metadata = context.ActionDescriptor.EndpointMetadata.OfType<BusinessCommandAttribute>().SingleOrDefault()
+            ?? throw new InvalidOperationException("Business commands require explicit endpoint metadata.");
+        metadata.Validate();
         var account = Guid.Parse(context.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         Guid Argument(string name) => context.ActionArguments.TryGetValue(name, out var value) && value is Guid id
             ? id : throw new InvalidOperationException("Missing command route ID.");
-        var controller = action.ControllerTypeInfo.AsType();
-        var target = "";
-        Guid targetId;
-        AuthorizationScope scope;
-        if (controller == typeof(PropertiesController))
+        Guid Resolve(IdSource source) => source switch
         {
-            target = "Property";
-            targetId = request is CreatePropertyRequest create ? CreateId(create.Id) : Argument("id");
-            scope = request is CreatePropertyRequest ? new("Account", account, "Manager") : new("Property", targetId, "Owner");
-        }
-        else if (controller == typeof(UnitsController))
-        {
-            target = "Unit";
-            targetId = request is CreateUnitRequest create ? CreateId(create.Id) : Argument("id");
-            scope = new("Property", Argument("propertyId"), "Owner");
-        }
-        else if (controller == typeof(ApplicantProfileController))
-        {
-            target = "Profile";
-            targetId = account;
-            scope = new("Account", account, "Applicant");
-        }
-        else if (controller == typeof(UnitApplicationsController))
-        {
-            target = "Unit";
-            targetId = Argument("unitId");
-            scope = new("Unit", targetId, "Owner");
-        }
-        else if (controller == typeof(ApplicationsController) && request is CreateApplicationRequest create)
-        {
-            target = "Application";
-            targetId = CreateId(create.Id);
-            scope = new("Unit", create.UnitId, "Applicant");
-        }
-        else if (controller == typeof(ApplicationsController) || controller == typeof(ApplicationReviewsController))
-        {
-            target = request is SaveManagerNoteRequest ? "ManagerNote" : "Application";
-            targetId = Argument("id");
-            scope = new("Application", targetId, controller == typeof(ApplicationsController) ? "Applicant" :
-                request is SaveManagerNoteRequest ? "Manager" : "Owner");
-        }
-        else throw new InvalidOperationException("Unregistered business command.");
+            IdSource.Account => account,
+            IdSource.RouteId => Argument("id"),
+            IdSource.RoutePropertyId => Argument("propertyId"),
+            IdSource.RouteUnitId => Argument("unitId"),
+            IdSource.RequestId when request is ICreateResourceRequest create => CreateId(create.Id),
+            IdSource.RequestUnitId when request is IUnitTargetRequest unit => unit.UnitId,
+            _ => throw new InvalidOperationException("Command ID source is unsupported or incompatible with the request.")
+        };
+
+        var targetId = Resolve(metadata.TargetId);
+        var scope = new AuthorizationScope(metadata.Scope, Resolve(metadata.ScopeId), metadata.Access);
+        var acceptedScope = metadata.AcceptedScope == ResourceType.Unspecified ? scope :
+            new AuthorizationScope(metadata.AcceptedScope, Resolve(metadata.AcceptedScopeId), metadata.AcceptedAccess);
 
         var route = context.ActionArguments.Where(p => p.Value is Guid)
             .ToDictionary(p => p.Key, p => ((Guid)p.Value!).ToString("D"), StringComparer.Ordinal);
-        return new(action.ControllerName + "." + action.ActionName, target, targetId.ToString("D"), scope, route);
+        return new(metadata.CommandType, metadata.Target, targetId.ToString("D"), scope, acceptedScope, route);
     }
 
     private static Guid CreateId(Guid id)

@@ -4,6 +4,7 @@ using RentalManagement.Api.Auth;
 using RentalManagement.Api.Contracts.Applications;
 using RentalManagement.Api.Contracts.Profiles;
 using RentalManagement.Api.Domain;
+using RentalManagement.Api.Operations;
 using RentalManagement.Api.Services;
 
 namespace RentalManagement.Api.Controllers;
@@ -33,6 +34,9 @@ public sealed class ApplicationsController(ApplicationService applications) : Co
         Ok(await applications.ReadAsync(User, id, ct));
 
     [HttpPost]
+    [BusinessCommand("Applications.Create", Target = ResourceType.Application, TargetId = IdSource.RequestId,
+        Scope = ResourceType.Unit, ScopeId = IdSource.RequestUnitId, Access = ResourceAccess.Applicant,
+        AcceptedScope = ResourceType.Application, AcceptedScopeId = IdSource.RequestId, AcceptedAccess = ResourceAccess.Applicant)]
     [Authorize(Policy = AccountRoles.Applicant)]
     [ProducesResponseType<ApplicationDetailResponse>(StatusCodes.Status201Created, "application/json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
@@ -47,6 +51,8 @@ public sealed class ApplicationsController(ApplicationService applications) : Co
     }
 
     [HttpPut("{id:guid}/applicant-information")]
+    [BusinessCommand("Applications.SaveInformation", Target = ResourceType.Application, TargetId = IdSource.RouteId,
+        Scope = ResourceType.Application, ScopeId = IdSource.RouteId, Access = ResourceAccess.Applicant)]
     [Authorize(Policy = AccountRoles.Applicant)]
     [ProducesResponseType<ApplicationDetailResponse>(StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
@@ -58,6 +64,8 @@ public sealed class ApplicationsController(ApplicationService applications) : Co
         Ok(await applications.SaveInformationAsync(User, id, request, ct));
 
     [HttpPut("{id:guid}/residence-history")]
+    [BusinessCommand("Applications.SaveResidences", Target = ResourceType.Application, TargetId = IdSource.RouteId,
+        Scope = ResourceType.Application, ScopeId = IdSource.RouteId, Access = ResourceAccess.Applicant)]
     [Authorize(Policy = AccountRoles.Applicant)]
     [ProducesResponseType<ApplicationDetailResponse>(StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
@@ -69,6 +77,8 @@ public sealed class ApplicationsController(ApplicationService applications) : Co
         Ok(await applications.SaveResidencesAsync(User, id, request, ct));
 
     [HttpPost("{id:guid}/submit")]
+    [BusinessCommand("Applications.Submit", Target = ResourceType.Application, TargetId = IdSource.RouteId,
+        Scope = ResourceType.Application, ScopeId = IdSource.RouteId, Access = ResourceAccess.Applicant)]
     [Authorize(Policy = AccountRoles.Applicant)]
     [ProducesResponseType<ApplicationDetailResponse>(StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
@@ -80,6 +90,8 @@ public sealed class ApplicationsController(ApplicationService applications) : Co
         Ok(await applications.ActAsync(User, id, ApplicationAction.Submit, request, ct));
 
     [HttpPost("{id:guid}/withdraw")]
+    [BusinessCommand("Applications.Withdraw", Target = ResourceType.Application, TargetId = IdSource.RouteId,
+        Scope = ResourceType.Application, ScopeId = IdSource.RouteId, Access = ResourceAccess.Applicant)]
     [Authorize(Policy = AccountRoles.Applicant)]
     [ProducesResponseType<ApplicationDetailResponse>(StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RentalManagement.Api.Auth;
 using RentalManagement.Api.Contracts.Applications;
+using RentalManagement.Api.Operations;
 using RentalManagement.Api.Services;
 
 namespace RentalManagement.Api.Controllers;
@@ -16,6 +17,8 @@ namespace RentalManagement.Api.Controllers;
 public sealed class UnitApplicationsController(ApplicationService applications) : ControllerBase
 {
     [HttpPost("reject-all")]
+    [BusinessCommand("UnitApplications.RejectAll", Target = ResourceType.Unit, TargetId = IdSource.RouteUnitId,
+        Scope = ResourceType.Unit, ScopeId = IdSource.RouteUnitId, Access = ResourceAccess.Owner)]
     [ProducesResponseType<RejectAllApplicationsResponse>(StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound, "application/problem+json")]

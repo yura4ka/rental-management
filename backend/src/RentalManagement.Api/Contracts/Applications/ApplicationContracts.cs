@@ -5,7 +5,8 @@ using RentalManagement.Api.Contracts.Operations;
 
 namespace RentalManagement.Api.Contracts.Applications;
 
-public sealed record CreateApplicationRequest(Guid Id, Guid UnitId, ApplicantInformation? ApplicantInformation) : OperationRequest;
+public sealed record CreateApplicationRequest(Guid Id, Guid UnitId, ApplicantInformation? ApplicantInformation)
+    : OperationRequest, ICreateResourceRequest, IUnitTargetRequest;
 public sealed record ApplicationActionRequest(long ExpectedVersion, string? Comment = null) : OperationRequest;
 public sealed record SaveManagerNoteRequest([property: JsonRequired] long? ExpectedVersion, string? Body) : OperationRequest;
 public sealed record RejectAllApplicationsRequest(string? Comment) : OperationRequest;

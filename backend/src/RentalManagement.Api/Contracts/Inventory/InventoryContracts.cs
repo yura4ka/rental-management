@@ -4,13 +4,14 @@ using RentalManagement.Api.Contracts.Operations;
 namespace RentalManagement.Api.Contracts.Inventory;
 
 public sealed record PropertyAddress(string? DisplayName, string? StreetAddress, string? Line2);
-public sealed record CreatePropertyRequest(PropertyAddress? Address) : OperationRequest
+public sealed record CreatePropertyRequest(PropertyAddress? Address) : OperationRequest, ICreateResourceRequest
 {
     [JsonRequired]
     public Guid Id { get; init; }
 }
 public sealed record UpdatePropertyRequest(long ExpectedVersion, PropertyAddress? Address) : OperationRequest;
-public sealed record CreateUnitRequest(string? Number, Guid UnitTypeId, int? Bedrooms, long? MonthlyRentCents) : OperationRequest
+public sealed record CreateUnitRequest(string? Number, Guid UnitTypeId, int? Bedrooms, long? MonthlyRentCents)
+    : OperationRequest, ICreateResourceRequest
 {
     [JsonRequired]
     public Guid Id { get; init; }

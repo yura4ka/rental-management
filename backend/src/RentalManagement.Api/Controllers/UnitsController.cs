@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RentalManagement.Api.Auth;
 using RentalManagement.Api.Contracts.Inventory;
+using RentalManagement.Api.Operations;
 using RentalManagement.Api.Services;
 
 namespace RentalManagement.Api.Controllers;
@@ -25,6 +26,9 @@ public sealed class UnitsController(InventoryService inventory) : ControllerBase
         Ok(await inventory.UnitsAsync(User, propertyId, includeArchived, page, pageSize, cancellationToken));
 
     [HttpPost]
+    [BusinessCommand("Units.Create", Target = ResourceType.Unit, TargetId = IdSource.RequestId,
+        Scope = ResourceType.Property, ScopeId = IdSource.RoutePropertyId, Access = ResourceAccess.Owner,
+        AcceptedScope = ResourceType.Unit, AcceptedScopeId = IdSource.RequestId, AcceptedAccess = ResourceAccess.Owner)]
     [ProducesResponseType<UnitResponse>(StatusCodes.Status201Created, "application/json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict, "application/problem+json")]
@@ -38,6 +42,8 @@ public sealed class UnitsController(InventoryService inventory) : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [BusinessCommand("Units.Update", Target = ResourceType.Unit, TargetId = IdSource.RouteId,
+        Scope = ResourceType.Property, ScopeId = IdSource.RoutePropertyId, Access = ResourceAccess.Owner)]
     [ProducesResponseType<UnitResponse>(StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict, "application/problem+json")]
@@ -47,6 +53,8 @@ public sealed class UnitsController(InventoryService inventory) : ControllerBase
         CancellationToken cancellationToken) => Ok(await inventory.UpdateUnitAsync(User, propertyId, id, request, cancellationToken));
 
     [HttpPost("{id:guid}/archive")]
+    [BusinessCommand("Units.Archive", Target = ResourceType.Unit, TargetId = IdSource.RouteId,
+        Scope = ResourceType.Property, ScopeId = IdSource.RoutePropertyId, Access = ResourceAccess.Owner)]
     [ProducesResponseType<UnitResponse>(StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict, "application/problem+json")]

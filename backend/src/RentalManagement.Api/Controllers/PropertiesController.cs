@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RentalManagement.Api.Auth;
 using RentalManagement.Api.Contracts.Inventory;
+using RentalManagement.Api.Operations;
 using RentalManagement.Api.Services;
 
 namespace RentalManagement.Api.Controllers;
@@ -24,6 +25,9 @@ public sealed class PropertiesController(InventoryService inventory) : Controlle
         Ok(await inventory.PropertiesAsync(User, includeArchived, page, pageSize, cancellationToken));
 
     [HttpPost]
+    [BusinessCommand("Properties.Create", Target = ResourceType.Property, TargetId = IdSource.RequestId,
+        Scope = ResourceType.Account, ScopeId = IdSource.Account, Access = ResourceAccess.Manager,
+        AcceptedScope = ResourceType.Property, AcceptedScopeId = IdSource.RequestId, AcceptedAccess = ResourceAccess.Owner)]
     [ProducesResponseType<PropertyResponse>(StatusCodes.Status201Created, "application/json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status422UnprocessableEntity, "application/problem+json")]
@@ -34,6 +38,8 @@ public sealed class PropertiesController(InventoryService inventory) : Controlle
     }
 
     [HttpPut("{id:guid}")]
+    [BusinessCommand("Properties.Update", Target = ResourceType.Property, TargetId = IdSource.RouteId,
+        Scope = ResourceType.Property, ScopeId = IdSource.RouteId, Access = ResourceAccess.Owner)]
     [ProducesResponseType<PropertyResponse>(StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound, "application/problem+json")]
@@ -44,6 +50,8 @@ public sealed class PropertiesController(InventoryService inventory) : Controlle
         CancellationToken cancellationToken) => Ok(await inventory.UpdatePropertyAsync(User, id, request, cancellationToken));
 
     [HttpPost("{id:guid}/archive")]
+    [BusinessCommand("Properties.Archive", Target = ResourceType.Property, TargetId = IdSource.RouteId,
+        Scope = ResourceType.Property, ScopeId = IdSource.RouteId, Access = ResourceAccess.Owner)]
     [ProducesResponseType<PropertyResponse>(StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound, "application/problem+json")]

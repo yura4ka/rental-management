@@ -128,7 +128,11 @@ public sealed class OperationProtocolTests
             foreach (var action in controller.GetMethods().Where(m => m.GetCustomAttributes(true)
                 .OfType<Microsoft.AspNetCore.Mvc.Routing.HttpMethodAttribute>()
                 .Any(a => a.HttpMethods.Any(v => v is "POST" or "PUT" or "PATCH" or "DELETE"))))
+            {
                 Assert.Contains(action.GetParameters(), p => typeof(OperationRequest).IsAssignableFrom(p.ParameterType));
+                var metadata = Assert.Single(action.GetCustomAttributes(false).OfType<BusinessCommandAttribute>());
+                metadata.Validate();
+            }
     }
 
     [Fact]
