@@ -48,8 +48,9 @@ public sealed class ApiErrorMiddleware(RequestDelegate next, ILogger<ApiErrorMid
         finally
         {
             // Endpoint display name is static; never log paths, query strings, tokens or bodies.
-            logger.LogInformation("Request {Endpoint} completed in {DurationMs} ms with {HttpStatus} and {ErrorCode}",
-                context.GetEndpoint()?.DisplayName, Stopwatch.GetElapsedTime(started).TotalMilliseconds,
+            logger.LogInformation("Request {Endpoint} operation {OperationId} {CommandType} completed in {DurationMs} ms with {HttpStatus} and {ErrorCode}",
+                context.GetEndpoint()?.DisplayName, context.Items["OperationId"], context.Items["CommandType"],
+                Stopwatch.GetElapsedTime(started).TotalMilliseconds,
                 context.Response.StatusCode, code);
         }
     }

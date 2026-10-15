@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using RentalManagement.Api.Domain;
 using RentalManagement.Api.Persistence.Configurations;
+using RentalManagement.Api.Contracts.Operations;
 
 namespace RentalManagement.Api.Persistence;
 
@@ -10,6 +11,10 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     : IdentityDbContext<IdentityUser<Guid>, IdentityRole<Guid>, Guid>(options)
 {
     internal bool PreserveSeedInsertValues { get; set; }
+    internal Guid? CurrentOperationId { get; set; }
+    internal Dictionary<string, AffectedResource> OperationResources { get; } = new(StringComparer.Ordinal);
+    public DbSet<OperationReceipt> OperationReceipts => Set<OperationReceipt>();
+    public DbSet<LogoutAcknowledgement> LogoutAcknowledgements => Set<LogoutAcknowledgement>();
     public DbSet<Property> Properties => Set<Property>();
     public DbSet<UnitType> UnitTypes => Set<UnitType>();
     public DbSet<Unit> Units => Set<Unit>();
@@ -46,6 +51,13 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 
     private void PrepareChanges()
     {
+        foreach (var entry in ChangeTracker.Entries<OperationReceipt>())
+            if (entry.State == EntityState.Deleted ||
+                (entry.State == EntityState.Modified && entry.OriginalValues.GetValue<string?>(nameof(OperationReceipt.Outcome)) is not null))
+                throw new InvalidOperationException("Final operation receipts are immutable.");
+        foreach (var entry in ChangeTracker.Entries<LogoutAcknowledgement>())
+            if (entry.State is EntityState.Modified or EntityState.Deleted)
+                throw new InvalidOperationException("Logout acknowledgements are immutable.");
         var now = DateTimeOffset.UtcNow;
         foreach (var entry in ChangeTracker.Entries().Where(e => e.State is EntityState.Added or EntityState.Modified))
         {
@@ -63,6 +75,24 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
             }
             if (entry.Metadata.FindProperty("UpdatedAt") is not null)
                 entry.Property("UpdatedAt").CurrentValue = now;
+            if (CurrentOperationId is not null)
+            {
+                var resource = entry.Entity switch
+                {
+                    Property p => VersionedResource("Property", p.Id, p.Version),
+                    Unit u => VersionedResource("Unit", u.Id, u.Version),
+                    RentalApplication a => VersionedResource("Application", a.Id, a.Version),
+                    ApplicantProfile p => VersionedResource("Profile", p.ApplicantId, p.Version),
+                    ManagerNote n => VersionedResource("ManagerNote", n.ApplicationId, n.Version),
+                    Lease l => new AffectedResource("Lease", l.Id.ToString("D"), null),
+                    UnitLeaseGuard g => VersionedResource("UnitLeaseGuard", g.UnitId, g.Version),
+                    _ => null
+                };
+                if (resource is not null) OperationResources[resource.ResourceType + ":" + resource.Id] = resource;
+            }
         }
     }
+
+    private static AffectedResource VersionedResource(string type, Guid id, long version) =>
+        new(type, id.ToString("D"), version.ToString(System.Globalization.CultureInfo.InvariantCulture));
 }

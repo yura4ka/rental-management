@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Authentication.BearerToken;
 using System.Text.Json.Serialization.Metadata;
+using System.Text.Json.Serialization;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.OpenApi;
@@ -18,6 +20,7 @@ using RentalManagement.Api.Services;
 using RentalManagement.Api.Services.Auth;
 using RentalManagement.Api.Services.Profiles;
 using RentalManagement.Api.Validation;
+using RentalManagement.Api.Operations;
 
 namespace RentalManagement.Api.Infrastructure;
 
@@ -29,6 +32,8 @@ public static class ServiceConfiguration
         var connectionString = config.GetConnectionString("DefaultConnection");
         if (string.IsNullOrWhiteSpace(connectionString))
             throw new InvalidOperationException("Set ConnectionStrings:DefaultConnection through user secrets or environment configuration.");
+        if (new SqlConnectionStringBuilder(connectionString).MultipleActiveResultSets)
+            throw new InvalidOperationException("Disable MultipleActiveResultSets: offline command rejection recovery requires SQL Server savepoints.");
         services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
         services.AddScoped<DatabaseInitializer>();
         services.AddScoped<DemonstrationSeeder>();
@@ -76,6 +81,9 @@ public static class ServiceConfiguration
         services.AddScoped<ApplicantProfileService>();
         services.AddScoped<InventoryService>();
         services.AddScoped<ApplicationService>();
+        services.AddScoped<OperationAuthorization>();
+        services.AddScoped<CommandRunner>();
+        services.AddScoped<CommandFilter>();
         services.AddScoped<IValidator<CreatePropertyRequest>, CreatePropertyRequestValidator>();
         services.AddScoped<IValidator<UpdatePropertyRequest>, UpdatePropertyRequestValidator>();
         services.AddScoped<IValidator<CreateUnitRequest>, CreateUnitRequestValidator>();
@@ -87,11 +95,14 @@ public static class ServiceConfiguration
         services.AddScoped<IValidator<ResidenceHistoryCommand>, ResidenceHistoryCommandValidator>();
         services.AddScoped<IValidator<SignupRequest>, SignupRequestValidator>();
         services.AddScoped<IValidator<SignupCommand>, SignupCommandValidator>();
-        services.AddControllers().AddJsonOptions(options =>
+        services.AddControllers(options => options.Filters.AddService<CommandFilter>()).AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.PropertyNameCaseInsensitive = false;
             options.JsonSerializerOptions.TypeInfoResolver = new DefaultJsonTypeInfoResolver
             {
-                Modifiers = { VersionJsonConverter.Configure }
-            });
+                Modifiers = { VersionJsonConverter.Configure, ConfigureCommandJson }
+            };
+        });
         services.ConfigureHttpJsonOptions(options =>
             options.SerializerOptions.TypeInfoResolver = new DefaultJsonTypeInfoResolver
             {
@@ -118,8 +129,20 @@ public static class ServiceConfiguration
             options.SchemaFilter<ProfileOpenApiFilter>();
             options.SchemaFilter<InventoryOpenApiFilter>();
             options.SchemaFilter<ApplicationOpenApiFilter>();
+            options.SchemaFilter<OperationOpenApiFilter>();
+            options.OperationFilter<OperationOpenApiFilter>();
         });
         return services;
+    }
+
+    public static void ConfigureCommandJson(JsonTypeInfo typeInfo)
+    {
+        if (typeInfo.Kind != JsonTypeInfoKind.Object ||
+            typeInfo.Type.Namespace?.StartsWith("RentalManagement.Api.Contracts.", StringComparison.Ordinal) != true ||
+            typeInfo.Type.Namespace.EndsWith(".Auth", StringComparison.Ordinal)) return;
+        typeInfo.UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow;
+        foreach (var property in typeInfo.Properties)
+            if (property.Name.Equals("expectedVersion", StringComparison.OrdinalIgnoreCase)) property.IsRequired = true;
     }
 
     private static void ConfigureDataProtection(IServiceCollection services, IConfiguration config, IHostEnvironment environment)
