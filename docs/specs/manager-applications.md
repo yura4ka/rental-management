@@ -47,9 +47,9 @@ Review comments and private notes have a 2,000-character limit. Return/Deny comm
 
 ## Online implementation amendments
 
-These amendments take precedence over the shared command protocol references above for the current stage.
+These business/response amendments remain in effect alongside the shared [offline command protocol](offline-mode.md#command-contract).
 
-- Offline queues, operation IDs, receipts, replay, and recovery are deferred. Review actions retain decimal-string application `expectedVersion` and atomic status/history updates. Approval also atomically commits the lease and unit lease guard, without an operation receipt.
+- Review actions require operationId/environmentGeneration, decimal-string application `expectedVersion`, and atomic status/history/receipt updates. Approval also atomically commits the lease and unit lease guard. Offline queues and pending-action UI locks remain client responsibilities.
 - Approval does **not** automatically deny or otherwise change other applications for the unit.
 - Existing applications retain normal actions after property/unit archival, including approval. Creation requires active inventory; submit/resubmit requires no active lease but ignores archival.
 
@@ -58,7 +58,7 @@ These amendments take precedence over the shared command protocol references abo
 | Route | Contract |
 | --- | --- |
 | `GET /api/applications/{id}` | Any manager may view detail/history/lease dates, including archived-linked applications. Embeds only that requesting manager's own note, or null. See applicant amendments for detail/list shapes. |
-| `POST /api/units/{unitId}/applications/reject-all` | Property owner only, including archived units. Body `{ comment }`: required nonblank text, maximum 2,000 characters. Returns `200` with `{ affectedCount }`. |
+| `POST /api/units/{unitId}/applications/reject-all` | Property owner only, including archived units. Body `{ operationId, environmentGeneration, comment }`: required nonblank comment, maximum 2,000 characters. Returns `200` with affectedCount and operation/affected-resource metadata. |
 
 ### Bulk rejection
 
@@ -67,6 +67,7 @@ These amendments take precedence over the shared command protocol references abo
 - Unlike the single-application `deny` endpoint, bulk rejection may deny any open status. A never-saved residence history remains null when a Draft is denied.
 - Each affected application advances its shared Version and receives an individual `Deny` history entry with actor, prior/new statuses, server time, and the shared comment. Applicant information and residences are unchanged.
 - No client application list or expected versions are required. Creation and lifecycle actions serialize on the same per-unit guard; application row locks coordinate section saves. Concurrent creation is ordered either before the batch (included) or after it (not included). The batch is all-or-nothing.
+- This is an explicit version-check exception for offline queues: newly created/edited applications may be included when first executed. Identical replay returns the original batch result without selecting or rejecting additional applications. Each affected history row uses the batch operation ID; history, effects, and its account-scoped receipt commit together.
 - No matching applications is a successful no-op with `affectedCount: 0`. Unowned units return `403`; nonexistent units return `404`.
 
 ### Existing write response contracts
@@ -74,3 +75,4 @@ These amendments take precedence over the shared command protocol references abo
 - Review requests contain `{ expectedVersion, comment? }`; Return/Deny require a nonblank comment, Approve allows one, and Start review/Release accept no nonblank comment. Successful review actions return updated application detail.
 - `PUT /api/applications/{id}/my-note` accepts `{ expectedVersion, body }`. The expected version property must be present: explicitly null on first save, otherwise the decimal-string note Version. Body must be supplied and may be empty, with a 2,000-character limit. Returns `{ body, createdAt, updatedAt, version }`. Note writes never advance the application Version or create review history.
 - List filtering/paging/sorting and UUID tie-breaking follow the original contract; list rows never project notes. `showArchived` affects list inclusion only, not detail access or review permissions.
+- All write bodies above additionally require operationId/environmentGeneration, and successful bodies add operationId, outcome, and affectedResources. First note saves still require an explicitly null expectedVersion; note operations have their own receipt but never advance the application Version.

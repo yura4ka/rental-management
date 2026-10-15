@@ -43,9 +43,9 @@
 
 ## Online implementation amendments
 
-These amendments take precedence over the offline command references above for the current stage.
+These business/response amendments remain in effect alongside the shared [offline command protocol](offline-mode.md#command-contract).
 
-- Offline mode and the shared command protocol are deferred: no operation IDs, operation receipts, replay/recovery endpoints, offline queues, or server-side pending-action locks are introduced. Existing-resource writes still require positive decimal-string `expectedVersion` and atomic transactions. A stale write returns `409 StaleVersion`.
+- Business mutations require operation IDs, environment generation, atomic receipts, and positive decimal-string `expectedVersion` for existing targets. A stale write returns a receipted `409 StaleVersion`. Local offline queues and pending-action UI locks remain client responsibilities; the backend does not store a Processing state.
 - Local forms, unfinished edits, Summary snapshots, and confirmations remain client responsibilities; the API enforces persisted-section completeness, not unsubmitted local input.
 - Creation requires active property/unit records and no active lease. Existing applications retain normal actions after either inventory record is archived: submit/resubmit ignores archival but still rejects an active lease.
 - Approval leaves all other applications unchanged. While a lease is active, creation, submission/resubmission, and further approval are blocked. Other legal actions remain available.
@@ -57,8 +57,8 @@ These amendments take precedence over the offline command references above for t
 | --- | --- |
 | `GET /api/applications/{id}` | Detail accessible to its applicant and all managers, including archived-linked applications. Applicants receive no manager note content. |
 
-- `POST /api/applications` accepts `{ id, unitId, applicantInformation }` with a nonempty client UUID `id`; returns `201`, a detail body, and a Location header. Applicant information uses `name`, `phone`, `contactEmail`, and `currentAddress`.
-- Section replacement accepts `{ expectedVersion, applicantInformation }` or `{ expectedVersion, residenceHistory }`. Submit/withdraw accept `{ expectedVersion }`. Successful saves and actions return `200` and updated detail.
+- `POST /api/applications` accepts `{ operationId, environmentGeneration, id, unitId, applicantInformation }` with a client UUIDv7 `id`; returns `201`, a detail body with operation/affected-resource metadata, and a Location header. Applicant information uses `name`, `phone`, `contactEmail`, and `currentAddress`.
+- Section replacement accepts `{ expectedVersion, applicantInformation }` or `{ expectedVersion, residenceHistory }`, plus required operationId/environmentGeneration. Submit/withdraw use the same metadata with `{ expectedVersion }`. Successful saves and actions return `200` and updated detail with operation/affected-resource metadata.
 - List returns `{ rows, total, page, pageSize }`, with fixed `pageSize: 20`. Each row contains `id`, `applicantId`, `unitId`, `propertyId`, `unitNumber`, `propertyAddress`, `isArchived`, `applicantName`, `status`, `createdAt`, `statusChangedAt`, and decimal-string `version`.
 - Detail returns `{ application, applicantInformation, residenceHistory, applicantInformationSavedAt, residenceHistorySavedAt, history, lease, myNote }`; `application` is the list-row shape. History is ordered by ascending sequence and contains actor, action, previous/new statuses, comment, and occurrence time. Applicant `myNote` is always null. `lease` is null until issued, then contains `id`, `startDate`, `endDateExclusive`, and `approvedAt`.
 - All calendar dates, including lease dates, use UTC-midnight `YYYY-MM-DDT00:00:00Z`. Statuses/actions use their documented case-sensitive names. Applicant `showArchived=true` is rejected; archived-linked rows are always included for applicants.

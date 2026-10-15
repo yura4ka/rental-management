@@ -12,7 +12,7 @@
 - Sign up uses a unique email and password; it does not automatically sign in.
 - Access tokens last 15 minutes; refresh tokens last 14 days. Sign out revokes existing refresh capability account-wide, but issued access tokens remain usable until expiry.
 - Session expiry preserves downloaded data and local work. Sync waits for valid authentication to the same account.
-- Sign-out warnings, reconciliation, and cleanup follow [Offline mode](offline-mode.md#sign-out-guards) (will be done as a separate feature).
+- Sign-out warnings, reconciliation, and cleanup follow [Offline mode](offline-mode.md#sign-out-guards).
 
 ## Technical essentials
 
@@ -32,10 +32,10 @@
 | `POST /api/auth/login` | Standard Identity Bearer login; no cookie query flags. |
 | `POST /api/auth/refresh` | Standard Identity refresh protocol. |
 | `GET /api/auth/me` | Authenticated account ID/email/role and database `environmentGeneration`. |
-| `POST /api/auth/logout` Standart Identity logout. The following modifications will be done as a part of offline feature` |
 | `POST /api/auth/logout` | `{operationId}`; 200 `{operationId, outcome: "Accepted", acknowledgedAt}`. |
 | `GET /api/auth/logout/{operationId}` | Original Accepted acknowledgement or `{operationId, outcome: "Unknown"}`. |
 
 - Login/refresh success uses `tokenType`, `accessToken`, `expiresIn`, `refreshToken`; handle their native failure responses without relying on message text.
-- Logout atomically updates the Identity security stamp and records `LogoutAcknowledgements(AccountId, OperationId, AcknowledgedAt)`. Repeating the same acknowledged operation must not revoke a later login. (Will be done as a part of offline feature)
-
+- Logout atomically updates the Identity security stamp and records `LogoutAcknowledgements(AccountId, OperationId, AcknowledgedAt)`. Repeating the same acknowledged operation must not revoke a later login.
+- Logout acknowledgements are retained indefinitely. Recovery is scoped to the authenticated account and returns Accepted or Unknown; logout remains outside the business command queue.
+- The client persists its UUIDv7 logout operation ID outside the private account database before transport. An unexpired access token can retry/fetch the acknowledgement even after successful refresh revocation. After access-token expiry, attempt normal refresh; successful refresh retries the same logout ID. A refresh 401 or known refresh expiry permits verified local cleanup without sign-in and without confirmed server revocation, only for a pending explicit logout with the required discard confirmation. Transient refresh errors retain pending logout/work. Normal session expiry is not logout.
