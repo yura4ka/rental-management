@@ -10,6 +10,8 @@ using RentalManagement.Api.Infrastructure;
 using RentalManagement.Api.Persistence;
 using RentalManagement.Api.Services.Auth;
 using RentalManagement.Api.Validation;
+using RentalManagement.Api.Contracts.Operations;
+using RentalManagement.Api.Operations;
 
 namespace RentalManagement.Api.Services;
 
@@ -58,12 +60,45 @@ public sealed class AccountService(ApplicationDbContext db, UserManager<Identity
         return new CurrentAccountResponse(user.Id, user.Email!, roles[0], generation.Value);
     }
 
-    public async Task LogoutAsync(ClaimsPrincipal principal)
+    public async Task<LogoutResponse> LogoutAsync(ClaimsPrincipal principal, Guid operationId, CancellationToken ct)
     {
+        CommandRunner.RequireUuid7(operationId, "operationId");
+        var account = Guid.Parse(principal.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        try
+        {
+            await using var transaction = await db.Database.BeginTransactionAsync(ct);
+            // Serialize all logout IDs for an account as well as identical retries.
+            await CommandRunner.AcquireLockAsync(db, $"logout:{account:D}", ct);
+            var existing = await db.LogoutAcknowledgements.AsNoTracking()
+                .SingleOrDefaultAsync(a => a.AccountId == account && a.OperationId == operationId, ct);
+            if (existing is not null) return new(operationId, "Accepted", existing.AcknowledgedAt);
+            var user = await GetUserAsync(principal);
+            var result = await users.UpdateSecurityStampAsync(user);
+            if (!result.Succeeded)
+                throw new ApiException(503, "LogoutUnavailable", "Sign out could not be completed. Retry.");
+            var acknowledgement = new LogoutAcknowledgement
+            {
+                AccountId = account, OperationId = operationId, AcknowledgedAt = DateTimeOffset.UtcNow
+            };
+            db.LogoutAcknowledgements.Add(acknowledgement);
+            await db.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
+            return new(operationId, "Accepted", acknowledgement.AcknowledgedAt);
+        }
+        catch (Exception exception) when (exception is SqlException { Number: -2 or 1205 or 1222 or 51000 } ||
+            exception.InnerException is SqlException { Number: -2 or 1205 or 1222 or 51000 })
+        {
+            throw new ApiException(503, "LogoutUnavailable", "Sign out could not be completed. Retry identically.");
+        }
+    }
+
+    public async Task<LogoutResponse> RecoverLogoutAsync(ClaimsPrincipal principal, Guid operationId, CancellationToken ct)
+    {
+        CommandRunner.RequireUuid7(operationId, "operationId");
         var user = await GetUserAsync(principal);
-        var result = await users.UpdateSecurityStampAsync(user);
-        if (!result.Succeeded)
-            throw new ApiException(503, "LogoutUnavailable", "Sign out could not be completed. Retry.");
+        var existing = await db.LogoutAcknowledgements.AsNoTracking()
+            .SingleOrDefaultAsync(a => a.AccountId == user.Id && a.OperationId == operationId, ct);
+        return existing is null ? new(operationId, "Unknown") : new(operationId, "Accepted", existing.AcknowledgedAt);
     }
 
     private async Task<IdentityUser<Guid>> GetUserAsync(ClaimsPrincipal principal) =>

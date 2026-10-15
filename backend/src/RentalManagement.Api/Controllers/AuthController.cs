@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RentalManagement.Api.Contracts.Auth;
 using RentalManagement.Api.Services;
+using RentalManagement.Api.Contracts.Operations;
 
 namespace RentalManagement.Api.Controllers;
 
@@ -30,12 +31,17 @@ public sealed class AuthController(AccountService accounts) : ControllerBase
         Ok(await accounts.MeAsync(User, cancellationToken));
 
     [HttpPost("logout")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<LogoutResponse>(StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
     [ProducesResponseType(typeof(void), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status503ServiceUnavailable, "application/problem+json")]
-    public async Task<IActionResult> Logout()
-    {
-        await accounts.LogoutAsync(User);
-        return NoContent();
-    }
+    public async Task<ActionResult<LogoutResponse>> Logout(LogoutRequest request, CancellationToken ct) =>
+        Ok(await accounts.LogoutAsync(User, request.OperationId, ct));
+
+    [HttpGet("logout/{operationId:guid}")]
+    [ProducesResponseType<LogoutResponse>(StatusCodes.Status200OK, "application/json")]
+    [ProducesResponseType(typeof(void), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
+    public async Task<ActionResult<LogoutResponse>> RecoverLogout(Guid operationId, CancellationToken ct) =>
+        Ok(await accounts.RecoverLogoutAsync(User, operationId, ct));
 }
