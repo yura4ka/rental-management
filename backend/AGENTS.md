@@ -39,8 +39,8 @@ Report which checks ran and any blockers; do not claim unrun checks passed.
 ## C# formatting
 
 - Follow surrounding code and use four-space indentation.
-- Break long fluent chains at logical stages rather than leaving a long
-  expression on one line.
+- Break long fluent chains than leaving a long expression on one line.
+- Separate logical blocks with line breaks to make core more readable.
 - Keep related ordering calls together when readable; otherwise wrap them.
 - Indent continuation lines one level beyond the statement.
 - Limit formatting changes to files touched by the task.

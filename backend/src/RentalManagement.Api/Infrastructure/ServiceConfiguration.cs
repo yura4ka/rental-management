@@ -75,6 +75,7 @@ public static class ServiceConfiguration
         services.TryAddSingleton<TimeProvider>(TimeProvider.System);
         services.AddScoped<ApplicantProfileService>();
         services.AddScoped<InventoryService>();
+        services.AddScoped<ApplicationService>();
         services.AddScoped<IValidator<CreatePropertyRequest>, CreatePropertyRequestValidator>();
         services.AddScoped<IValidator<UpdatePropertyRequest>, UpdatePropertyRequestValidator>();
         services.AddScoped<IValidator<CreateUnitRequest>, CreateUnitRequestValidator>();
@@ -116,6 +117,7 @@ public static class ServiceConfiguration
             options.SchemaFilter<VersionOpenApiFilter>();
             options.SchemaFilter<ProfileOpenApiFilter>();
             options.SchemaFilter<InventoryOpenApiFilter>();
+            options.SchemaFilter<ApplicationOpenApiFilter>();
         });
         return services;
     }

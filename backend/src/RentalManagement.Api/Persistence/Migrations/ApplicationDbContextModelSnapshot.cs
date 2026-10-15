@@ -454,7 +454,7 @@ namespace RentalManagement.Api.Persistence.Migrations
 
                             t.HasCheckConstraint("CK_History_Sequence", "[Sequence] >= 1");
 
-                            t.HasCheckConstraint("CK_History_Transition", "([Action] = 'Create' AND [FromStatus] IS NULL AND [ToStatus] = 'Draft') OR\n([FromStatus] IS NOT NULL AND (\n  ([Action] = 'Submit' AND [FromStatus] IN ('Draft', 'Returned') AND [ToStatus] = 'Submitted') OR\n  ([Action] = 'StartReview' AND [FromStatus] = 'Submitted' AND [ToStatus] = 'InReview') OR\n  ([Action] = 'Release' AND [FromStatus] = 'InReview' AND [ToStatus] = 'Submitted') OR\n  ([Action] = 'Return' AND [FromStatus] = 'InReview' AND [ToStatus] = 'Returned') OR\n  ([Action] = 'Deny' AND [FromStatus] = 'InReview' AND [ToStatus] = 'Denied') OR\n  ([Action] = 'Approve' AND [FromStatus] = 'InReview' AND [ToStatus] = 'Approved') OR\n  ([Action] = 'Withdraw' AND [FromStatus] IN ('Draft', 'Returned', 'Submitted', 'InReview') AND [ToStatus] = 'Withdrawn'))");
+                            t.HasCheckConstraint("CK_History_Transition", "([Action] = 'Create' AND [FromStatus] IS NULL AND [ToStatus] = 'Draft') OR\n([FromStatus] IS NOT NULL AND (\n  ([Action] = 'Submit' AND [FromStatus] IN ('Draft', 'Returned') AND [ToStatus] = 'Submitted') OR\n  ([Action] = 'StartReview' AND [FromStatus] = 'Submitted' AND [ToStatus] = 'InReview') OR\n  ([Action] = 'Release' AND [FromStatus] = 'InReview' AND [ToStatus] = 'Submitted') OR\n  ([Action] = 'Return' AND [FromStatus] = 'InReview' AND [ToStatus] = 'Returned') OR\n  ([Action] = 'Deny' AND [FromStatus] IN ('Draft', 'Submitted', 'InReview', 'Returned') AND [ToStatus] = 'Denied') OR\n  ([Action] = 'Approve' AND [FromStatus] = 'InReview' AND [ToStatus] = 'Approved') OR\n  ([Action] = 'Withdraw' AND [FromStatus] IN ('Draft', 'Returned', 'Submitted', 'InReview') AND [ToStatus] = 'Withdrawn'))");
                         });
                 });
 
@@ -825,7 +825,7 @@ namespace RentalManagement.Api.Persistence.Migrations
 
                             t.HasCheckConstraint("CK_RentalApplications_ResidenceHistorySavedAt_Utc", "[ResidenceHistorySavedAt] IS NULL OR DATEPART(TZOFFSET, [ResidenceHistorySavedAt]) = 0");
 
-                            t.HasCheckConstraint("CK_RentalApplications_SavedHistory", "[Status] IN ('Draft', 'Withdrawn') OR [ResidenceHistorySavedAt] IS NOT NULL");
+                            t.HasCheckConstraint("CK_RentalApplications_SavedHistory", "[Status] IN ('Draft', 'Withdrawn', 'Denied') OR [ResidenceHistorySavedAt] IS NOT NULL");
 
                             t.HasCheckConstraint("CK_RentalApplications_Status", "[Status] IN ('Draft', 'Submitted', 'InReview', 'Returned', 'Approved', 'Denied', 'Withdrawn')");
 

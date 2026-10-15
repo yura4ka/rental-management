@@ -12,7 +12,7 @@ public sealed class RentalApplicationConfiguration : IEntityTypeConfiguration<Re
         b.ToTable("RentalApplications", t =>
         {
             t.HasCheckConstraint("CK_RentalApplications_Status", "[Status] IN ('Draft', 'Submitted', 'InReview', 'Returned', 'Approved', 'Denied', 'Withdrawn')");
-            t.HasCheckConstraint("CK_RentalApplications_SavedHistory", "[Status] IN ('Draft', 'Withdrawn') OR [ResidenceHistorySavedAt] IS NOT NULL");
+            t.HasCheckConstraint("CK_RentalApplications_SavedHistory", "[Status] IN ('Draft', 'Withdrawn', 'Denied') OR [ResidenceHistorySavedAt] IS NOT NULL");
         });
         b.HasKey(a => a.Id);
         b.Property(a => a.Status).HasConversion<string>().HasMaxLength(20).IsUnicode(false).UseCollation(DomainModelConventions.BinaryCollation);
@@ -68,7 +68,7 @@ public sealed class ApplicationStatusHistoryConfiguration : IEntityTypeConfigura
                   ([Action] = 'StartReview' AND [FromStatus] = 'Submitted' AND [ToStatus] = 'InReview') OR
                   ([Action] = 'Release' AND [FromStatus] = 'InReview' AND [ToStatus] = 'Submitted') OR
                   ([Action] = 'Return' AND [FromStatus] = 'InReview' AND [ToStatus] = 'Returned') OR
-                  ([Action] = 'Deny' AND [FromStatus] = 'InReview' AND [ToStatus] = 'Denied') OR
+                  ([Action] = 'Deny' AND [FromStatus] IN ('Draft', 'Submitted', 'InReview', 'Returned') AND [ToStatus] = 'Denied') OR
                   ([Action] = 'Approve' AND [FromStatus] = 'InReview' AND [ToStatus] = 'Approved') OR
                   ([Action] = 'Withdraw' AND [FromStatus] IN ('Draft', 'Returned', 'Submitted', 'InReview') AND [ToStatus] = 'Withdrawn'))
                 """);
