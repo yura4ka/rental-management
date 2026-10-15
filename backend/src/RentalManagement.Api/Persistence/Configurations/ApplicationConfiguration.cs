@@ -81,6 +81,7 @@ public sealed class ApplicationStatusHistoryConfiguration : IEntityTypeConfigura
         b.HasOne<RentalApplication>().WithMany().HasForeignKey(h => h.ApplicationId);
         b.HasOne<IdentityUser<Guid>>().WithMany().HasForeignKey(h => h.ActorUserId);
         b.HasIndex(h => new { h.ApplicationId, h.Sequence }).IsUnique().HasDatabaseName("UX_History_Application_Sequence");
+        b.HasIndex(h => new { h.ApplicationId, h.OperationId }).IsUnique().HasDatabaseName("UX_History_Application_Operation");
         b.HasIndex(h => h.ActorUserId).HasDatabaseName("IX_History_ActorUserId");
     }
 }

@@ -31,12 +31,12 @@ public sealed class ApplicationTests
         var unit = await test.UnitAsync(ownerId);
         using var anonymous = test.App.GetTestClient();
         Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/applications")).StatusCode);
-        var id = Guid.NewGuid();
+        var id = Guid.CreateVersion7();
         Assert.Equal(HttpStatusCode.UnprocessableEntity, (await applicant.PostAsJsonAsync("/api/applications",
             new { id, unitId = unit, applicantInformation = new { name = "Incomplete" } })).StatusCode);
         await test.CreateApplicationAsync(applicant, unit, id);
         Assert.Equal(HttpStatusCode.Conflict, (await applicant.PostAsJsonAsync("/api/applications",
-            new { id = Guid.NewGuid(), unitId = unit, applicantInformation = Info() })).StatusCode);
+            new { id = Guid.CreateVersion7(), unitId = unit, applicantInformation = Info() })).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await other.GetAsync($"/api/applications/{id}")).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await manager.GetAsync($"/api/applications/{id}")).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, (await owner.PutAsJsonAsync($"/api/applications/{id}/residence-history",
@@ -91,7 +91,7 @@ public sealed class ApplicationTests
         Assert.Equal(start.AddMonths(12), (await db.UnitLeaseGuards.SingleAsync(g => g.UnitId == unit)).ConfirmedLeaseEndExclusive);
         var (third, _) = await test.AccountAsync(AccountRoles.Applicant);
         Assert.Equal(HttpStatusCode.Conflict, (await third.PostAsJsonAsync("/api/applications",
-            new { id = Guid.NewGuid(), unitId = unit, applicantInformation = Info() })).StatusCode);
+            new { id = Guid.CreateVersion7(), unitId = unit, applicantInformation = Info() })).StatusCode);
     }
 
     [SqlServerFact]
@@ -293,7 +293,7 @@ public sealed class ApplicationTests
         var (applicant, _) = await test.AccountAsync(AccountRoles.Applicant);
         var unit = await test.UnitAsync(ownerId);
         var creates = await Task.WhenAll(Enumerable.Range(0, 2).Select(_ => applicant.PostAsJsonAsync("/api/applications",
-            new { id = Guid.NewGuid(), unitId = unit, applicantInformation = Info() })));
+            new { id = Guid.CreateVersion7(), unitId = unit, applicantInformation = Info() })));
         var accepted = Assert.Single(creates, r => r.StatusCode == HttpStatusCode.Created);
         Assert.Single(creates, r => r.StatusCode == HttpStatusCode.Conflict);
         var id = (await Json(accepted)).GetProperty("application").GetProperty("id").GetGuid();
@@ -345,7 +345,7 @@ public sealed class ApplicationTests
 
         internal async Task<(HttpClient, Guid)> AccountAsync(string role)
         {
-            var client = app.GetTestClient();
+            var client = await OfflineTestClient.CreateAsync(app);
             clients.Add(client);
             var email = Guid.NewGuid().ToString("N") + "@example.com";
             const string password = "Application test password";
@@ -373,7 +373,7 @@ public sealed class ApplicationTests
 
         internal async Task<Guid> CreateApplicationAsync(HttpClient applicant, Guid unit, Guid? suppliedId = null)
         {
-            var id = suppliedId ?? Guid.NewGuid();
+            var id = suppliedId ?? Guid.CreateVersion7();
             var result = await applicant.PostAsJsonAsync("/api/applications", new { id, unitId = unit, applicantInformation = Info() });
             Assert.Equal(HttpStatusCode.Created, result.StatusCode);
             Assert.NotNull(result.Headers.Location);

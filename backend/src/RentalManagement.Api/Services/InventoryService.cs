@@ -49,10 +49,15 @@ public sealed class InventoryService(ApplicationDbContext db, TimeProvider clock
     {
         var owner = ManagerId(principal);
         ValidationErrors.ThrowIfInvalid(await createProperties.ValidateAsync(request, cancellationToken));
-        var property = new Property { OwnerManagerId = owner, Address = AddressEntity(request.Address!) };
-        db.Properties.Add(property);
-        await db.SaveChangesAsync(cancellationToken);
-        return PropertyDto(property);
+        return await WriteAsync(async () =>
+        {
+            if (await db.Properties.AnyAsync(p => p.Id == request.Id, cancellationToken))
+                throw new ApiException(409, "PropertyIdAlreadyUsed", "The property ID is already used.");
+            var property = new Property { Id = request.Id, OwnerManagerId = owner, Address = AddressEntity(request.Address!) };
+            db.Properties.Add(property);
+            await db.SaveChangesAsync(cancellationToken);
+            return PropertyDto(property);
+        }, cancellationToken);
     }
 
     public async Task<PropertyResponse> UpdatePropertyAsync(ClaimsPrincipal principal, Guid id,
@@ -103,8 +108,11 @@ public sealed class InventoryService(ApplicationDbContext db, TimeProvider clock
         {
             await LockPropertyAsync(propertyId, owner, cancellationToken);
             await ValidateTypeAsync(request.UnitTypeId, null, cancellationToken);
+            if (await db.Units.AnyAsync(u => u.Id == request.Id, cancellationToken))
+                throw new ApiException(409, "UnitIdAlreadyUsed", "The unit ID is already used.");
             var unit = new Unit
             {
+                Id = request.Id,
                 PropertyId = propertyId,
                 Number = request.Number!,
                 UnitTypeId = request.UnitTypeId,
@@ -211,9 +219,10 @@ public sealed class InventoryService(ApplicationDbContext db, TimeProvider clock
     {
         try
         {
-            await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+            await using var transaction = db.Database.CurrentTransaction is null
+                ? await db.Database.BeginTransactionAsync(cancellationToken) : null;
             var response = await write();
-            await transaction.CommitAsync(cancellationToken);
+            if (transaction is not null) await transaction.CommitAsync(cancellationToken);
             return response;
         }
         catch (DbUpdateConcurrencyException) { throw Stale(); }

@@ -165,7 +165,7 @@ public sealed class ApplicantProfileTests
 
     private static async Task<HttpClient> AccountAsync(WebApplication app, string role)
     {
-        var client = app.GetTestClient();
+        var client = await OfflineTestClient.CreateAsync(app);
         var email = Guid.NewGuid().ToString("N") + "@example.com";
         const string password = "Profile test password";
         var signup = await client.PostAsJsonAsync("/api/auth/signup", new SignupRequest(email, password, role));

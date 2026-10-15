@@ -257,7 +257,7 @@ public sealed class InventoryTests
 
     private static async Task<HttpClient> AccountAsync(WebApplication app, string role)
     {
-        var client = app.GetTestClient();
+        var client = await OfflineTestClient.CreateAsync(app);
         var email = Guid.NewGuid().ToString("N") + "@example.com";
         const string password = "Inventory test password";
         Assert.Equal(HttpStatusCode.Created, (await client.PostAsJsonAsync("/api/auth/signup",

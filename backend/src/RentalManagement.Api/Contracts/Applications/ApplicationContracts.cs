@@ -1,13 +1,14 @@
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
 using RentalManagement.Api.Contracts.Profiles;
+using RentalManagement.Api.Contracts.Operations;
 
 namespace RentalManagement.Api.Contracts.Applications;
 
-public sealed record CreateApplicationRequest(Guid Id, Guid UnitId, ApplicantInformation? ApplicantInformation);
-public sealed record ApplicationActionRequest(long ExpectedVersion, string? Comment = null);
-public sealed record SaveManagerNoteRequest([property: JsonRequired] long? ExpectedVersion, string? Body);
-public sealed record RejectAllApplicationsRequest(string? Comment);
+public sealed record CreateApplicationRequest(Guid Id, Guid UnitId, ApplicantInformation? ApplicantInformation) : OperationRequest;
+public sealed record ApplicationActionRequest(long ExpectedVersion, string? Comment = null) : OperationRequest;
+public sealed record SaveManagerNoteRequest([property: JsonRequired] long? ExpectedVersion, string? Body) : OperationRequest;
+public sealed record RejectAllApplicationsRequest(string? Comment) : OperationRequest;
 public sealed record RejectAllApplicationsResponse(int AffectedCount);
 public sealed record ApplicationListQuery
 {

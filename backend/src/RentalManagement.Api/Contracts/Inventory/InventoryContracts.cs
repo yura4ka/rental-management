@@ -1,12 +1,23 @@
+using System.Text.Json.Serialization;
+using RentalManagement.Api.Contracts.Operations;
+
 namespace RentalManagement.Api.Contracts.Inventory;
 
 public sealed record PropertyAddress(string? DisplayName, string? StreetAddress, string? Line2);
-public sealed record CreatePropertyRequest(PropertyAddress? Address);
-public sealed record UpdatePropertyRequest(long ExpectedVersion, PropertyAddress? Address);
-public sealed record CreateUnitRequest(string? Number, Guid UnitTypeId, int? Bedrooms, long? MonthlyRentCents);
+public sealed record CreatePropertyRequest(PropertyAddress? Address) : OperationRequest
+{
+    [JsonRequired]
+    public Guid Id { get; init; }
+}
+public sealed record UpdatePropertyRequest(long ExpectedVersion, PropertyAddress? Address) : OperationRequest;
+public sealed record CreateUnitRequest(string? Number, Guid UnitTypeId, int? Bedrooms, long? MonthlyRentCents) : OperationRequest
+{
+    [JsonRequired]
+    public Guid Id { get; init; }
+}
 public sealed record UpdateUnitRequest(long ExpectedVersion, string? Number, Guid UnitTypeId,
-    int? Bedrooms, long? MonthlyRentCents);
-public sealed record ArchiveInventoryRequest(long ExpectedVersion);
+    int? Bedrooms, long? MonthlyRentCents) : OperationRequest;
+public sealed record ArchiveInventoryRequest(long ExpectedVersion) : OperationRequest;
 public sealed record PropertyResponse(Guid Id, PropertyAddress Address, string DisplayAddress,
     DateTimeOffset? ArchivedAt, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, long Version);
 public sealed record UnitTypeResponse(Guid Id, string Code, string Name, bool IsActive, long Version);

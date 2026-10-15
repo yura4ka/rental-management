@@ -95,10 +95,10 @@ public sealed class ProfileValidationTests
             TypeInfoResolver = new System.Text.Json.Serialization.Metadata.DefaultJsonTypeInfoResolver
                 { Modifiers = { VersionJsonConverter.Configure } }
         };
-        var request = JsonSerializer.Deserialize<ResidenceHistoryRequest>("{\"expectedVersion\":\"9007199254740993\",\"residenceHistory\":[]}", options)!;
+        var request = JsonSerializer.Deserialize<ResidenceHistoryRequest>(OperationTestJson.WithMetadata("{\"expectedVersion\":\"9007199254740993\",\"residenceHistory\":[]}"), options)!;
         Assert.Equal(9007199254740993L, request.ExpectedVersion);
         Assert.Contains("\"expectedVersion\":\"9007199254740993\"", JsonSerializer.Serialize(request, options));
-        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<ResidenceHistoryRequest>("{\"expectedVersion\":1}", options));
+        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<ResidenceHistoryRequest>(OperationTestJson.WithMetadata("{\"expectedVersion\":1}"), options));
     }
 
     private static ResidenceInput Row(string moveIn, string moveOut) => new(new(null, "Street", null), "Landlord", "123-456-7890", moveIn, moveOut);

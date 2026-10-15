@@ -93,12 +93,12 @@ public sealed class ApplicationRulesTests
         {
             TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { VersionJsonConverter.Configure } }
         };
-        Assert.Null(JsonSerializer.Deserialize<SaveManagerNoteRequest>("""{"expectedVersion":null,"body":""}""", options)!.ExpectedVersion);
-        var note = JsonSerializer.Deserialize<SaveManagerNoteRequest>("""{"expectedVersion":"9007199254740993","body":"note"}""", options)!;
+        Assert.Null(JsonSerializer.Deserialize<SaveManagerNoteRequest>(OperationTestJson.WithMetadata("""{"expectedVersion":null,"body":""}"""), options)!.ExpectedVersion);
+        var note = JsonSerializer.Deserialize<SaveManagerNoteRequest>(OperationTestJson.WithMetadata("""{"expectedVersion":"9007199254740993","body":"note"}"""), options)!;
         Assert.Equal(9007199254740993L, note.ExpectedVersion);
         Assert.Contains("\"expectedVersion\":\"9007199254740993\"", JsonSerializer.Serialize(note, options));
-        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<SaveManagerNoteRequest>("""{"body":"note"}""", options));
-        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<SaveManagerNoteRequest>("""{"expectedVersion":1,"body":"note"}""", options));
+        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<SaveManagerNoteRequest>(OperationTestJson.WithMetadata("""{"body":"note"}"""), options));
+        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<SaveManagerNoteRequest>(OperationTestJson.WithMetadata("""{"expectedVersion":1,"body":"note"}"""), options));
     }
 
     private static ApplicantInformation ValidInfo() => new("Alice", "123-456-7890", "alice@example.com", new(null, "Street", null));

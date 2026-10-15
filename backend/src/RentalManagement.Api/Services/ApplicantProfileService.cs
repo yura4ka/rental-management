@@ -67,7 +67,8 @@ public sealed class ApplicantProfileService(ApplicationDbContext db,
     private async Task<ApplicantProfileResponse> ReplaceAsync(Guid id, long expectedVersion,
         Action<ApplicantProfile> change, IReadOnlyList<ResidenceInput?>? residences, CancellationToken cancellationToken)
     {
-        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = db.Database.CurrentTransaction is null
+            ? await db.Database.BeginTransactionAsync(cancellationToken) : null;
         var profile = await db.ApplicantProfiles.AsNoTracking().SingleOrDefaultAsync(p => p.ApplicantId == id, cancellationToken)
             ?? throw new ApiException(404, "ProfileNotFound", "Profile not found.");
         if (profile.Version != expectedVersion) throw StaleVersion();
@@ -103,7 +104,7 @@ public sealed class ApplicantProfileService(ApplicationDbContext db,
                 .Where(r => r.ApplicantId == profile.ApplicantId)
                 .OrderBy(r => r.MoveInDate).ThenBy(r => r.MoveOutDate).ThenBy(r => r.Position)
                 .ToListAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            if (transaction is not null) await transaction.CommitAsync(cancellationToken);
             return Response(profile, rows);
         }
         catch (DbUpdateConcurrencyException)

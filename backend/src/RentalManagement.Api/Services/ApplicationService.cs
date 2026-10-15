@@ -302,6 +302,7 @@ public sealed class ApplicationService(ApplicationDbContext db, TimeProvider clo
         db.ApplicationStatusHistory.Add(new ApplicationStatusHistory
         {
             ApplicationId = application.Id,
+            OperationId = db.CurrentOperationId ?? Guid.CreateVersion7(),
             ActorUserId = actor,
             Sequence = sequence,
             Action = action,
@@ -379,9 +380,10 @@ public sealed class ApplicationService(ApplicationDbContext db, TimeProvider clo
     {
         try
         {
-            await using var transaction = await db.Database.BeginTransactionAsync(ct);
+            await using var transaction = db.Database.CurrentTransaction is null
+                ? await db.Database.BeginTransactionAsync(ct) : null;
             var response = await write();
-            await transaction.CommitAsync(ct);
+            if (transaction is not null) await transaction.CommitAsync(ct);
             return response;
         }
         catch (DbUpdateConcurrencyException) { throw Stale(); }

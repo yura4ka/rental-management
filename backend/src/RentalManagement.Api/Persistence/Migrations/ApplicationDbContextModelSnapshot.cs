@@ -440,6 +440,10 @@ namespace RentalManagement.Api.Persistence.Migrations
                     b.HasIndex("ActorUserId")
                         .HasDatabaseName("IX_History_ActorUserId");
 
+                    b.HasIndex("ApplicationId", "OperationId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_History_Application_Operation");
+
                     b.HasIndex("ApplicationId", "Sequence")
                         .IsUnique()
                         .HasDatabaseName("UX_History_Application_Sequence");
@@ -519,6 +523,25 @@ namespace RentalManagement.Api.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("RentalManagement.Api.Domain.LogoutAcknowledgement", b =>
+                {
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("AcknowledgedAt")
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.HasKey("AccountId", "OperationId");
+
+                    b.ToTable("LogoutAcknowledgements", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_LogoutAcknowledgements_AcknowledgedAt_Utc", "[AcknowledgedAt] IS NULL OR DATEPART(TZOFFSET, [AcknowledgedAt]) = 0");
+                        });
+                });
+
             modelBuilder.Entity("RentalManagement.Api.Domain.ManagerNote", b =>
                 {
                     b.Property<Guid>("ApplicationId")
@@ -555,6 +578,92 @@ namespace RentalManagement.Api.Persistence.Migrations
                             t.HasCheckConstraint("CK_ManagerNotes_UpdatedAt_Utc", "[UpdatedAt] IS NULL OR DATEPART(TZOFFSET, [UpdatedAt]) = 0");
 
                             t.HasCheckConstraint("CK_ManagerNotes_Version", "[Version] >= 1");
+                        });
+                });
+
+            modelBuilder.Entity("RentalManagement.Api.Domain.OperationReceipt", b =>
+                {
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("CommandType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<Guid>("EnvironmentGeneration")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("FinalizedAt")
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<int>("FingerprintVersion")
+                        .HasColumnType("int");
+
+                    b.Property<short?>("HttpStatus")
+                        .HasColumnType("smallint");
+
+                    b.Property<string>("Outcome")
+                        .HasMaxLength(10)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(10)")
+                        .UseCollation("Latin1_General_100_BIN2");
+
+                    b.Property<byte[]>("RequestFingerprint")
+                        .IsRequired()
+                        .HasColumnType("binary(32)");
+
+                    b.Property<string>("ResponseJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ResponseSchemaVersion")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TargetId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("TargetType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("AccountId", "OperationId");
+
+                    b.ToTable("OperationReceipts", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_OperationReceipts_Code_Nonblank", "[Code] IS NULL OR LEN(LTRIM(RTRIM([Code]))) > 0");
+
+                            t.HasCheckConstraint("CK_OperationReceipts_CommandType_Nonblank", "[CommandType] IS NULL OR LEN(LTRIM(RTRIM([CommandType]))) > 0");
+
+                            t.HasCheckConstraint("CK_OperationReceipts_FinalizedAt_Utc", "[FinalizedAt] IS NULL OR DATEPART(TZOFFSET, [FinalizedAt]) = 0");
+
+                            t.HasCheckConstraint("CK_OperationReceipts_Outcome_Nonblank", "[Outcome] IS NULL OR LEN(LTRIM(RTRIM([Outcome]))) > 0");
+
+                            t.HasCheckConstraint("CK_OperationReceipts_ResponseJson_Nonblank", "[ResponseJson] IS NULL OR LEN(LTRIM(RTRIM([ResponseJson]))) > 0");
+
+                            t.HasCheckConstraint("CK_OperationReceipts_TargetId_Nonblank", "[TargetId] IS NULL OR LEN(LTRIM(RTRIM([TargetId]))) > 0");
+
+                            t.HasCheckConstraint("CK_OperationReceipts_TargetType_Nonblank", "[TargetType] IS NULL OR LEN(LTRIM(RTRIM([TargetType]))) > 0");
+
+                            t.HasCheckConstraint("CK_Receipts_FingerprintVersion", "[FingerprintVersion] >= 1");
+
+                            t.HasCheckConstraint("CK_Receipts_Json", "[ResponseJson] IS NULL OR ISJSON([ResponseJson]) = 1");
+
+                            t.HasCheckConstraint("CK_Receipts_ResponseSchemaVersion", "[ResponseSchemaVersion] IS NULL OR [ResponseSchemaVersion] >= 1");
+
+                            t.HasCheckConstraint("CK_Receipts_Shape", "([Outcome] IS NULL AND [HttpStatus] IS NULL AND [Code] IS NULL AND\n [ResponseSchemaVersion] IS NULL AND [ResponseJson] IS NULL AND [FinalizedAt] IS NULL) OR\n([Outcome] IS NOT NULL AND [HttpStatus] IS NOT NULL AND [ResponseSchemaVersion] IS NOT NULL AND\n [ResponseJson] IS NOT NULL AND [FinalizedAt] IS NOT NULL AND\n (([Outcome] = 'Accepted' AND [HttpStatus] BETWEEN 200 AND 299) OR\n  ([Outcome] = 'Rejected' AND [HttpStatus] IN (409, 422) AND [Code] IS NOT NULL)))");
                         });
                 });
 
@@ -1063,6 +1172,15 @@ namespace RentalManagement.Api.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("RentalManagement.Api.Domain.LogoutAcknowledgement", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser<System.Guid>", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("RentalManagement.Api.Domain.ManagerNote", b =>
                 {
                     b.HasOne("RentalManagement.Api.Domain.RentalApplication", null)
@@ -1074,6 +1192,15 @@ namespace RentalManagement.Api.Persistence.Migrations
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser<System.Guid>", null)
                         .WithMany()
                         .HasForeignKey("AuthorManagerId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("RentalManagement.Api.Domain.OperationReceipt", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser<System.Guid>", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
