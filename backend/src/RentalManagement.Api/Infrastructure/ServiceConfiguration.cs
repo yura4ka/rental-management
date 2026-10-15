@@ -21,6 +21,7 @@ using RentalManagement.Api.Services.Auth;
 using RentalManagement.Api.Services.Profiles;
 using RentalManagement.Api.Validation;
 using RentalManagement.Api.Operations;
+using RentalManagement.Api.Operations.Authorization;
 
 namespace RentalManagement.Api.Infrastructure;
 
@@ -81,7 +82,7 @@ public static class ServiceConfiguration
         services.AddScoped<ApplicantProfileService>();
         services.AddScoped<InventoryService>();
         services.AddScoped<ApplicationService>();
-        services.AddScoped<OperationAuthorization>();
+        services.AddOperationAuthorization();
         services.AddScoped<CommandRunner>();
         services.AddScoped<CommandFilter>();
         services.AddScoped<IValidator<CreatePropertyRequest>, CreatePropertyRequestValidator>();
@@ -132,6 +133,16 @@ public static class ServiceConfiguration
             options.SchemaFilter<OperationOpenApiFilter>();
             options.OperationFilter<OperationOpenApiFilter>();
         });
+        return services;
+    }
+
+    public static IServiceCollection AddOperationAuthorization(this IServiceCollection services)
+    {
+        services.AddScoped<IOperationScopeAuthorizer, AccountScopeAuthorizer>();
+        services.AddScoped<IOperationScopeAuthorizer, PropertyScopeAuthorizer>();
+        services.AddScoped<IOperationScopeAuthorizer, UnitScopeAuthorizer>();
+        services.AddScoped<IOperationScopeAuthorizer, ApplicationScopeAuthorizer>();
+        services.AddScoped<OperationAuthorization>();
         return services;
     }
 
