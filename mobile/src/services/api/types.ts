@@ -1,3 +1,5 @@
+import { StoredTokens } from "@/services/secureStorage";
+
 export interface ILogoutManager {
   signOut(reason: "session-expired"): void | Promise<void>;
 }
@@ -16,4 +18,6 @@ export interface HTTPRequest {
 
 export interface HTTPTransport {
   fetch<T>(request: HTTPRequest): Promise<T>;
+  refresh(previous: StoredTokens | null): Promise<StoredTokens>;
+  resetSession(): Promise<void>;
 }

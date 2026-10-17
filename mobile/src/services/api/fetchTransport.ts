@@ -1,6 +1,7 @@
 import { ITokenStorage, StoredTokens } from "@/services/secureStorage";
 import { TokenPairResponse } from "@/features/auth/types";
 import { HTTPError } from "./httpError";
+import { NetworkError } from "./networkError";
 import type { HTTPRequest, HTTPTransport, ILogoutManager } from "./types";
 
 function abortError(): Error {
@@ -9,31 +10,13 @@ function abortError(): Error {
   return error;
 }
 
-/** Stop waiting without aborting an operation shared with other callers. */
-function waitFor<T>(operation: Promise<T>, signal?: AbortSignal): Promise<T> {
-  if (!signal) return operation;
-  return new Promise((resolve, reject) => {
-    const onAbort = () => reject(abortError());
-    if (signal.aborted) onAbort();
-    else signal.addEventListener("abort", onAbort, { once: true });
-    operation.then(
-      (value) => {
-        signal.removeEventListener("abort", onAbort);
-        if (signal.aborted) reject(abortError());
-        else resolve(value);
-      },
-      (error: unknown) => {
-        signal.removeEventListener("abort", onAbort);
-        reject(error);
-      },
-    );
-  });
-}
+type TransportResponse = { response: Response; text: string };
 
 export class FetchTransport implements HTTPTransport {
   private readonly baseUrl: URL;
   private refreshing: Promise<StoredTokens> | null = null;
-  private failedSession: { tokens: StoredTokens | null; error: unknown } | null = null;
+  private sessionError: HTTPError | null = null;
+  private sessionScope = new AbortController();
 
   constructor(
     baseUrl: string,
@@ -44,30 +27,49 @@ export class FetchTransport implements HTTPTransport {
   }
 
   fetch = async <T>(request: HTTPRequest): Promise<T> => {
-    if (request.signal?.aborted) throw abortError();
+    const sessionSignal = this.sessionScope.signal;
+    if (sessionSignal.aborted || request.signal?.aborted) throw abortError();
+
     const url = this.buildUrl(request);
-    const isAuthRequest = ["/api/auth/login", "/api/auth/refresh"].includes(url.pathname);
+    const isAuthRequest = ["/api/auth/signup", "/api/auth/login", "/api/auth/refresh"].includes(
+      url.pathname,
+    );
     const body = this.prepareBody(request);
-    let tokens = isAuthRequest
-      ? null
-      : await waitFor(this.tokenStorage.getTokens(), request.signal);
+    let tokens = isAuthRequest ? null : await this.tokenStorage.getTokens();
     let refreshed = false;
 
     if (!isAuthRequest) {
-      this.checkSession(tokens);
+      if (sessionSignal.aborted) throw abortError();
+      if (this.sessionError) throw this.sessionError;
       if (tokens && tokens.accessTokenExpiresAt <= Date.now()) {
-        tokens = await waitFor(this.refresh(tokens), request.signal);
+        tokens = await this.refresh(tokens);
         refreshed = true;
       }
     }
 
-    let response = await this.send(url, request, body, tokens);
-    if (response.status === 401 && !isAuthRequest && !refreshed) {
-      tokens = await waitFor(this.refresh(tokens), request.signal);
-      response = await this.send(url, request, body, tokens);
+    let response = await this.send(url, request, body, tokens, sessionSignal);
+    if (response.response.status === 401 && !isAuthRequest && !refreshed) {
+      if (sessionSignal.aborted) throw abortError();
+      tokens = await this.refresh(tokens);
+      response = await this.send(url, request, body, tokens, sessionSignal);
     }
     return this.readResponse<T>(response);
   };
+
+  refresh(previous: StoredTokens | null): Promise<StoredTokens> {
+    if (this.refreshing) return this.refreshing;
+    this.refreshing = this.performRefresh(previous).finally(() => {
+      this.refreshing = null;
+    });
+    return this.refreshing;
+  }
+
+  async resetSession(): Promise<void> {
+    this.sessionScope.abort();
+    await this.refreshing?.catch(() => undefined);
+    this.sessionScope = new AbortController();
+    this.sessionError = null;
+  }
 
   private buildUrl(request: HTTPRequest): URL {
     const url = new URL(request.url, this.baseUrl);
@@ -83,52 +85,49 @@ export class FetchTransport implements HTTPTransport {
     return request.body === undefined ? undefined : JSON.stringify(request.body);
   }
 
-  private send(
+  private async send(
     url: URL,
     request: HTTPRequest,
     body: string | undefined,
     tokens: StoredTokens | null,
-  ): Promise<Response> {
-    if (request.signal?.aborted) return Promise.reject(abortError());
-    return globalThis.fetch(url.toString(), {
-      method: request.method ?? "GET",
-      headers: {
-        Accept: "application/json",
-        ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
-        ...(tokens ? { Authorization: `Bearer ${tokens.accessToken}` } : {}),
-      },
-      body,
-      signal: request.signal,
-      credentials: "omit",
-    });
-  }
+    sessionSignal: AbortSignal,
+  ): Promise<TransportResponse> {
+    if (request.signal?.aborted || sessionSignal.aborted) throw abortError();
+    const controller = new AbortController();
+    const onAbort = () => controller.abort();
+    request.signal?.addEventListener("abort", onAbort, { once: true });
+    sessionSignal.addEventListener("abort", onAbort, { once: true });
+    const timeout = setTimeout(() => controller.abort(), 15000);
 
-  private checkSession(tokens: StoredTokens | null): void {
-    if (!this.failedSession) return;
-    const failed = this.failedSession.tokens;
-    if (
-      !tokens ||
-      (tokens.accessToken === failed?.accessToken && tokens.refreshToken === failed?.refreshToken)
-    ) {
-      throw this.failedSession.error;
+    try {
+      const response = await globalThis.fetch(url.toString(), {
+        method: request.method ?? "GET",
+        headers: {
+          Accept: "application/json",
+          ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+          ...(tokens ? { Authorization: `Bearer ${tokens.accessToken}` } : {}),
+        },
+        body,
+        signal: controller.signal,
+        credentials: "omit",
+      });
+      return { response, text: await response.text() };
+    } catch (error) {
+      if (request.signal?.aborted || sessionSignal.aborted) throw abortError();
+      throw new NetworkError(error);
+    } finally {
+      clearTimeout(timeout);
+      request.signal?.removeEventListener("abort", onAbort);
+      sessionSignal.removeEventListener("abort", onAbort);
     }
-    // A subsequent login supplied a new pair.
-    this.failedSession = null;
-  }
-
-  private refresh(previous: StoredTokens | null): Promise<StoredTokens> {
-    if (this.refreshing) return this.refreshing;
-    this.refreshing = this.performRefresh(previous).finally(() => {
-      this.refreshing = null;
-    });
-    return this.refreshing;
   }
 
   private async performRefresh(previous: StoredTokens | null): Promise<StoredTokens> {
-    let current = previous;
+    const sessionSignal = this.sessionScope.signal;
     try {
-      current = await this.tokenStorage.getTokens();
-      this.checkSession(current);
+      const current = await this.tokenStorage.getTokens();
+      if (sessionSignal.aborted) throw abortError();
+      if (this.sessionError) throw this.sessionError;
       // A late 401 can arrive after another request has already refreshed the pair.
       if (
         current &&
@@ -143,27 +142,34 @@ export class FetchTransport implements HTTPTransport {
         { url: "/api/auth/refresh", method: "POST" },
         JSON.stringify({ refreshToken: current.refreshToken }),
         null,
+        sessionSignal,
       );
       const pair = await this.readResponse<TokenPairResponse>(response);
+      if (sessionSignal.aborted) throw abortError();
+
       const tokens = { ...pair, accessTokenExpiresAt: Date.now() + pair.expiresIn * 1000 };
       await this.tokenStorage.setTokens(tokens);
       return tokens;
     } catch (error) {
-      if (!this.failedSession) {
-        this.failedSession = { tokens: current, error };
-        // Preserve the refresh error even if the logout coordinator also fails.
-        try {
-          await this.logoutManager.signOut("session-expired");
-        } catch {
-          // Logout owns its cleanup/recovery policy.
-        }
+      if (
+        error instanceof HTTPError &&
+        [400, 401, 403].includes(error.status) &&
+        !sessionSignal.aborted &&
+        !this.sessionError
+      ) {
+        this.sessionError = error;
+        // Cleanup waits for refresh to finish, so do not await it from this request.
+        void Promise.resolve()
+          .then(() => {
+            if (!sessionSignal.aborted) return this.logoutManager.signOut("session-expired");
+          })
+          .catch(() => undefined);
       }
       throw error;
     }
   }
 
-  private async readResponse<T>(response: Response): Promise<T> {
-    const text = await response.text();
+  private async readResponse<T>({ response, text }: TransportResponse): Promise<T> {
     let body: unknown = undefined;
     if (text) {
       try {
