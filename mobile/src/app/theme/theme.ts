@@ -198,9 +198,9 @@ export const lightTheme = {
       base: { minHeight: 56, paddingHorizontal: 16, adornmentPadding: 12 },
       lg: { minHeight: 64, paddingHorizontal: 20, adornmentPadding: 16 },
     },
-    iconSmall: 16,
-    icon: 20,
-    iconLarge: 24,
+    iconSmall: 20,
+    icon: 24,
+    iconLarge: 28,
   },
   shadows: {
     none: {

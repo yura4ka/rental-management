@@ -40,9 +40,14 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.7",
     "prettier": "^3.9.10",
+    "react-native-svg-transformer": "^1.5.3",
+    "tar": "^7.5.22",
     "typescript": "~6.0.3"
   },
   "scripts": {
+    "addItem": "node scripts/addIcons/index.mjs",
+    "addItems": "node scripts/addIcons/index.mjs",
+    "test:icons": "node --test scripts/addIcons/index.test.mjs",
     "start": "expo start",
     "start:clear": "expo start --clear",
     "android": "expo run:android",

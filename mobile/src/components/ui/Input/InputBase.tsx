@@ -8,13 +8,12 @@ import {
 } from "react-native";
 import Animated from "react-native-reanimated";
 import { StyleSheet } from "react-native-unistyles";
+import { useAnimatedVariantColor } from "react-native-unistyles/reanimated";
+import { IconName } from "@/app/assets/icons";
+import { Icon } from "@/components/Icon/Icon";
 import { StyledActivityIndicator } from "../../StyledActivityIndicator";
 import { Text } from "../Text";
 
-const LABEL_FONT_SIZE = 14;
-const LABEL_LINE_HEIGHT = 20;
-const FLOATING_LABEL_FONT_SIZE = 12;
-const FLOATING_LABEL_LINE_HEIGHT = 18;
 const TRANSITION_DURATION = 180;
 
 export type InputSize = "sm" | "base" | "lg";
@@ -32,8 +31,8 @@ export type InputBaseProps = {
   size?: InputSize;
   isLoadingLeft?: boolean;
   isLoadingRight?: boolean;
-  iconLeft?: string;
-  iconRight?: string;
+  iconLeft?: IconName;
+  iconRight?: IconName;
   onIconLeftPress?: () => void;
   onIconRightPress?: () => void;
   iconLeftAccessibilityLabel?: string;
@@ -63,13 +62,19 @@ export function InputBase({
   containerStyle,
   children,
 }: InputBaseProps) {
+  styles.useVariants({
+    state: isFocused ? "focused" : disabled ? "disabled" : isError ? "error" : "normal",
+  });
+
   const floating = isFocused || hasValue;
   const hasLeft = isLoadingLeft || !!iconLeft;
   const hasRight = isLoadingRight || !!iconRight;
 
+  const animatedIconColor = useAnimatedVariantColor(styles.icon, "color");
+
   const adornment = (
     loading: boolean,
-    icon: string | undefined,
+    icon: IconName | undefined,
     onPress: (() => void) | undefined,
     accessibilityLabel: string | undefined,
   ) => {
@@ -92,20 +97,13 @@ export function InputBase({
         accessibilityLabel={accessibilityLabel ?? icon}
         accessibilityState={{ disabled: disabled || !onPress }}
       >
-        <Animated.View
-          style={[
-            styles.icon,
-            isError && styles.iconError,
-            disabled && styles.iconDisabled,
-            { transitionProperty: "borderColor", transitionDuration: TRANSITION_DURATION },
-          ]}
-        />
+        <Icon name={icon} color={animatedIconColor} transitionDuration={TRANSITION_DURATION} />
       </TouchableOpacity>
     );
   };
 
   return (
-    <View style={[styles.container, !!label && styles.containerWithLabel, containerStyle]}>
+    <View style={[styles.container, containerStyle]}>
       <Animated.View
         style={[
           styles.frame,
@@ -115,10 +113,11 @@ export function InputBase({
           {
             transitionProperty: ["backgroundColor", "outlineColor", "outlineWidth"],
             transitionDuration: TRANSITION_DURATION,
+            transitionTimingFunction: "ease",
           },
         ]}
       >
-        <View style={styles.row(size, hasLeft, hasRight)}>
+        <View style={styles.row(size)}>
           {adornment(isLoadingLeft, iconLeft, onIconLeftPress, iconLeftAccessibilityLabel)}
           {children({
             textStyles: [styles.text, disabled && styles.textDisabled],
@@ -139,6 +138,7 @@ export function InputBase({
               {
                 transitionProperty: ["left", "top", "backgroundColor"],
                 transitionDuration: TRANSITION_DURATION,
+                transitionTimingFunction: "ease",
               },
             ]}
           >
@@ -153,6 +153,7 @@ export function InputBase({
                 {
                   transitionProperty: ["fontSize", "lineHeight", "color"],
                   transitionDuration: TRANSITION_DURATION,
+                  transitionTimingFunction: "ease",
                 },
               ]}
             >
@@ -178,9 +179,6 @@ const styles = StyleSheet.create((theme) => ({
   container: {
     gap: theme.spacing.xs,
   },
-  containerWithLabel: {
-    paddingTop: FLOATING_LABEL_LINE_HEIGHT / 2,
-  },
   frame: {
     backgroundColor: theme.colors.surface,
     borderRadius: theme.radius.control,
@@ -199,14 +197,13 @@ const styles = StyleSheet.create((theme) => ({
   frameError: {
     outlineColor: theme.colors.semantic.danger.foreground,
   },
-  row: (size: InputSize, hasLeft: boolean, hasRight: boolean) => {
+  row: (size: InputSize) => {
     const sizing = theme.sizing.inputSizes[size];
     return {
       flexDirection: "row",
       alignItems: "stretch",
       minHeight: sizing.minHeight,
-      paddingLeft: hasLeft ? sizing.adornmentPadding : sizing.paddingHorizontal,
-      paddingRight: hasRight ? sizing.adornmentPadding : sizing.paddingHorizontal,
+      paddingHorizontal: sizing.paddingHorizontal,
     };
   },
   content: (size: InputSize, hasLeft: boolean, hasRight: boolean) => ({
@@ -225,39 +222,36 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.disabledText,
   },
   adornment: {
-    minWidth: theme.sizing.touchTarget,
-    minHeight: theme.sizing.touchTarget,
+    minWidth: theme.sizing.icon,
+    minHeight: theme.sizing.icon,
     alignItems: "center",
     justifyContent: "center",
   },
   icon: {
-    width: theme.sizing.icon,
-    height: theme.sizing.icon,
-    borderRadius: theme.radius.badge,
-    borderWidth: theme.borderWidth.default,
-    borderColor: theme.colors.textSecondary,
-  },
-  iconError: {
-    borderColor: theme.colors.semantic.danger.foreground,
-  },
-  iconDisabled: {
-    borderColor: theme.colors.disabledText,
+    variants: {
+      state: {
+        normal: { color: theme.colors.textSecondary },
+        error: { color: theme.colors.semantic.danger.foreground },
+        disabled: { color: theme.colors.disabledText },
+        focused: { color: theme.colors.primary },
+      },
+    },
   },
   labelContainer: (size: InputSize, hasLeft: boolean) => {
     const sizing = theme.sizing.inputSizes[size];
     const left = hasLeft
-      ? sizing.adornmentPadding + theme.sizing.touchTarget + theme.spacing.sm
+      ? sizing.paddingHorizontal + theme.sizing.icon + theme.spacing.sm
       : sizing.paddingHorizontal;
 
     return {
       position: "absolute",
-      top: (sizing.minHeight - LABEL_LINE_HEIGHT) / 2,
+      top: (sizing.minHeight - 20) / 2,
       left: left - theme.spacing.xs,
       backgroundColor: theme.colors.surface,
     };
   },
   labelContainerFloating: (size: InputSize) => ({
-    top: -FLOATING_LABEL_LINE_HEIGHT / 2,
+    top: -18 / 2,
     left: theme.sizing.inputSizes[size].paddingHorizontal - theme.spacing.xs,
   }),
   labelContainerDisabled: {
@@ -265,14 +259,14 @@ const styles = StyleSheet.create((theme) => ({
   },
   label: {
     fontFamily: theme.fontFamily.regular,
-    fontSize: LABEL_FONT_SIZE,
-    lineHeight: LABEL_LINE_HEIGHT,
+    fontSize: 14,
+    lineHeight: 20,
     paddingHorizontal: theme.spacing.xs,
     color: theme.colors.textMuted,
   },
   labelFloating: {
-    fontSize: FLOATING_LABEL_FONT_SIZE,
-    lineHeight: FLOATING_LABEL_LINE_HEIGHT,
+    fontSize: 12,
+    lineHeight: 18,
   },
   labelFocused: {
     color: theme.colors.primary,
