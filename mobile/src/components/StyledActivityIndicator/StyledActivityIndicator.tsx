@@ -4,7 +4,7 @@ import { useUnistyles } from "react-native-unistyles";
 import { ColorVariantKey } from "@/app/theme";
 
 export type StyledActivityIndicatorProps = ComponentProps<typeof ActivityIndicator> & {
-  color: ColorVariantKey;
+  color?: ColorVariantKey;
 };
 
 export function StyledActivityIndicator({

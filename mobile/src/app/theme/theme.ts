@@ -195,7 +195,7 @@ export const lightTheme = {
     inputMinHeight: 52,
     inputSizes: {
       sm: { minHeight: 48, paddingHorizontal: 12, adornmentPadding: 8 },
-      md: { minHeight: 56, paddingHorizontal: 16, adornmentPadding: 12 },
+      base: { minHeight: 56, paddingHorizontal: 16, adornmentPadding: 12 },
       lg: { minHeight: 64, paddingHorizontal: 20, adornmentPadding: 16 },
     },
     iconSmall: 16,

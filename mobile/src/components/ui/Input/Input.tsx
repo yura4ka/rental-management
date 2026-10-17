@@ -35,8 +35,7 @@ export function Input({
   ...props
 }: InputProps) {
   const [isFocused, setIsFocused] = useState(false);
-  const [uncontrolledValue, setUncontrolledValue] = useState(defaultValue ?? "");
-  const hasValue = (value ?? uncontrolledValue).length > 0;
+  const hasValue = !!(value || defaultValue)?.length;
 
   return (
     <InputBase
@@ -72,10 +71,7 @@ export function Input({
           accessibilityHint={accessibilityHint}
           accessibilityState={{ ...props.accessibilityState, disabled }}
           placeholder={!label || isFocused ? placeholder : undefined}
-          onChangeText={(text) => {
-            setUncontrolledValue(text);
-            onChangeText?.(text);
-          }}
+          onChangeText={onChangeText}
           onFocus={(event) => {
             setIsFocused(true);
             onFocus?.(event);

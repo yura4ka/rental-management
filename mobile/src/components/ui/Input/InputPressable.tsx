@@ -1,4 +1,4 @@
-import { useState, type ComponentProps } from "react";
+import { type ComponentProps } from "react";
 import { TouchableOpacity } from "react-native";
 import { Text } from "../Text";
 import { InputBase, type InputBaseProps } from "./InputBase";
@@ -32,8 +32,6 @@ export function InputPressable({
   accessibilityHint = description,
   ...props
 }: InputPressableProps) {
-  const [hasFocus, setHasFocus] = useState(false);
-
   return (
     <InputBase
       {...{
@@ -52,11 +50,11 @@ export function InputPressable({
         iconRightAccessibilityLabel,
         containerStyle,
       }}
-      isFocused={!disabled && (isFocused || hasFocus)}
       hasValue={!!value?.length}
     >
       {({ textStyles, viewStyles }) => (
         <TouchableOpacity
+          activeOpacity={0.8}
           accessibilityRole="button"
           {...props}
           disabled={disabled}
@@ -64,14 +62,6 @@ export function InputPressable({
           accessibilityHint={accessibilityHint}
           accessibilityValue={{ text: value, ...props.accessibilityValue }}
           accessibilityState={{ ...props.accessibilityState, disabled }}
-          onFocus={(event) => {
-            setHasFocus(true);
-            onFocus?.(event);
-          }}
-          onBlur={(event) => {
-            setHasFocus(false);
-            onBlur?.(event);
-          }}
           style={[viewStyles, style]}
         >
           <Text style={textStyles}>{value || " "}</Text>

@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import {
   TouchableOpacity,
   View,
@@ -6,9 +6,16 @@ import {
   type TextStyle,
   type ViewStyle,
 } from "react-native";
+import Animated from "react-native-reanimated";
 import { StyleSheet } from "react-native-unistyles";
 import { StyledActivityIndicator } from "../../StyledActivityIndicator";
 import { Text } from "../Text";
+
+const LABEL_FONT_SIZE = 14;
+const LABEL_LINE_HEIGHT = 20;
+const FLOATING_LABEL_FONT_SIZE = 12;
+const FLOATING_LABEL_LINE_HEIGHT = 18;
+const TRANSITION_DURATION = 180;
 
 export type InputSize = "sm" | "base" | "lg";
 
@@ -56,21 +63,20 @@ export function InputBase({
   containerStyle,
   children,
 }: InputBaseProps) {
-  const [labelHeight, setLabelHeight] = useState(18);
   const floating = isFocused || hasValue;
   const hasLeft = isLoadingLeft || !!iconLeft;
   const hasRight = isLoadingRight || !!iconRight;
 
-  function adornment(
+  const adornment = (
     loading: boolean,
     icon: string | undefined,
     onPress: (() => void) | undefined,
     accessibilityLabel: string | undefined,
-  ) {
+  ) => {
     if (loading) {
       return (
         <View style={styles.adornment} accessibilityLabel="Loading">
-          <StyledActivityIndicator size="sm" />
+          <StyledActivityIndicator size="small" />
         </View>
       );
     }
@@ -86,40 +92,75 @@ export function InputBase({
         accessibilityLabel={accessibilityLabel ?? icon}
         accessibilityState={{ disabled: disabled || !onPress }}
       >
-        <View style={styles.icon(disabled, isError)} />
+        <Animated.View
+          style={[
+            styles.icon,
+            isError && styles.iconError,
+            disabled && styles.iconDisabled,
+            { transitionProperty: "borderColor", transitionDuration: TRANSITION_DURATION },
+          ]}
+        />
       </TouchableOpacity>
     );
-  }
+  };
 
   return (
-    <View style={[styles.container(!!label, labelHeight), containerStyle]}>
-      <View style={styles.frame(disabled)}>
+    <View style={[styles.container, !!label && styles.containerWithLabel, containerStyle]}>
+      <Animated.View
+        style={[
+          styles.frame,
+          isFocused && styles.frameFocused,
+          disabled && styles.frameDisabled,
+          isError && styles.frameError,
+          {
+            transitionProperty: ["backgroundColor", "outlineColor", "outlineWidth"],
+            transitionDuration: TRANSITION_DURATION,
+          },
+        ]}
+      >
         <View style={styles.row(size, hasLeft, hasRight)}>
           {adornment(isLoadingLeft, iconLeft, onIconLeftPress, iconLeftAccessibilityLabel)}
           {children({
-            textStyles: styles.text(disabled),
+            textStyles: [styles.text, disabled && styles.textDisabled],
             viewStyles: styles.content(size, hasLeft, hasRight),
           })}
           {adornment(isLoadingRight, iconRight, onIconRightPress, iconRightAccessibilityLabel)}
         </View>
-        <View pointerEvents="none" style={styles.outline(disabled, isError, isFocused)} />
         {!!label && (
-          <View
+          <Animated.View
             pointerEvents="none"
             accessible={false}
             accessibilityElementsHidden
             importantForAccessibility="no-hide-descendants"
-            style={styles.labelContainer(size, hasLeft, hasRight, floating, labelHeight)}
+            style={[
+              styles.labelContainer(size, hasLeft),
+              floating && styles.labelContainerFloating(size),
+              disabled && styles.labelContainerDisabled,
+              {
+                transitionProperty: ["left", "top", "backgroundColor"],
+                transitionDuration: TRANSITION_DURATION,
+              },
+            ]}
           >
-            <Text
-              onLayout={(event) => setLabelHeight(event.nativeEvent.layout.height)}
-              style={styles.label(floating, disabled, isError, isFocused)}
+            <Animated.Text
+              numberOfLines={1}
+              style={[
+                styles.label,
+                floating && styles.labelFloating,
+                isFocused && styles.labelFocused,
+                disabled && styles.labelDisabled,
+                isError && styles.labelError,
+                {
+                  transitionProperty: ["fontSize", "lineHeight", "color"],
+                  transitionDuration: TRANSITION_DURATION,
+                },
+              ]}
             >
               {label}
-            </Text>
-          </View>
+            </Animated.Text>
+          </Animated.View>
         )}
-      </View>
+      </Animated.View>
       {!!description && (
         <Text
           color={isError ? "danger.foreground" : "textSecondary"}
@@ -134,14 +175,30 @@ export function InputBase({
 }
 
 const styles = StyleSheet.create((theme) => ({
-  container: (hasLabel: boolean, labelHeight: number) => ({
-    paddingTop: hasLabel ? labelHeight / 2 : 0,
+  container: {
     gap: theme.spacing.xs,
-  }),
-  frame: (disabled: boolean) => ({
-    backgroundColor: disabled ? theme.colors.disabledBackground : theme.colors.surface,
+  },
+  containerWithLabel: {
+    paddingTop: FLOATING_LABEL_LINE_HEIGHT / 2,
+  },
+  frame: {
+    backgroundColor: theme.colors.surface,
     borderRadius: theme.radius.control,
-  }),
+    outlineWidth: theme.borderWidth.default,
+    outlineColor: theme.colors.inputBorder,
+  },
+  frameFocused: {
+    outlineWidth: theme.borderWidth.focused,
+    outlineColor: theme.colors.primary,
+  },
+  frameDisabled: {
+    backgroundColor: theme.colors.disabledBackground,
+    outlineWidth: theme.borderWidth.default,
+    outlineColor: theme.colors.border,
+  },
+  frameError: {
+    outlineColor: theme.colors.semantic.danger.foreground,
+  },
   row: (size: InputSize, hasLeft: boolean, hasRight: boolean) => {
     const sizing = theme.sizing.inputSizes[size];
     return {
@@ -152,90 +209,80 @@ const styles = StyleSheet.create((theme) => ({
       paddingRight: hasRight ? sizing.adornmentPadding : sizing.paddingHorizontal,
     };
   },
-  outline: (disabled: boolean, isError: boolean, isFocused: boolean) => ({
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: theme.radius.control,
-    borderWidth: isFocused && !disabled ? theme.borderWidth.focused : theme.borderWidth.default,
-    borderColor: isError
-      ? theme.colors.semantic.danger.foreground
-      : disabled
-        ? theme.colors.border
-        : isFocused
-          ? theme.colors.primary
-          : theme.colors.inputBorder,
-  }),
   content: (size: InputSize, hasLeft: boolean, hasRight: boolean) => ({
     flex: 1,
-    minWidth: 0,
     minHeight: theme.sizing.inputSizes[size].minHeight,
     justifyContent: "center",
     paddingVertical: theme.spacing.md,
     paddingLeft: hasLeft ? theme.spacing.sm : 0,
     paddingRight: hasRight ? theme.spacing.sm : 0,
   }),
-  text: (disabled: boolean) => ({
+  text: {
     ...theme.typography.body,
-    color: disabled ? theme.colors.disabledText : theme.colors.text,
-  }),
+    color: theme.colors.text,
+  },
+  textDisabled: {
+    color: theme.colors.disabledText,
+  },
   adornment: {
     minWidth: theme.sizing.touchTarget,
     minHeight: theme.sizing.touchTarget,
     alignItems: "center",
     justifyContent: "center",
   },
-  icon: (disabled: boolean, isError: boolean) => ({
+  icon: {
     width: theme.sizing.icon,
     height: theme.sizing.icon,
     borderRadius: theme.radius.badge,
     borderWidth: theme.borderWidth.default,
-    borderColor: disabled
-      ? theme.colors.disabledText
-      : isError
-        ? theme.colors.semantic.danger.foreground
-        : theme.colors.textSecondary,
+    borderColor: theme.colors.textSecondary,
+  },
+  iconError: {
+    borderColor: theme.colors.semantic.danger.foreground,
+  },
+  iconDisabled: {
+    borderColor: theme.colors.disabledText,
+  },
+  labelContainer: (size: InputSize, hasLeft: boolean) => {
+    const sizing = theme.sizing.inputSizes[size];
+    const left = hasLeft
+      ? sizing.adornmentPadding + theme.sizing.touchTarget + theme.spacing.sm
+      : sizing.paddingHorizontal;
+
+    return {
+      position: "absolute",
+      top: (sizing.minHeight - LABEL_LINE_HEIGHT) / 2,
+      left: left - theme.spacing.xs,
+      backgroundColor: theme.colors.surface,
+    };
+  },
+  labelContainerFloating: (size: InputSize) => ({
+    top: -FLOATING_LABEL_LINE_HEIGHT / 2,
+    left: theme.sizing.inputSizes[size].paddingHorizontal - theme.spacing.xs,
   }),
-  labelContainer: (
-    size: InputSize,
-    hasLeft: boolean,
-    hasRight: boolean,
-    floating: boolean,
-    labelHeight: number,
-  ) => ({
-    position: "absolute",
-    top: floating ? -labelHeight / 2 : 0,
-    bottom: floating ? undefined : 0,
-    left: floating
-      ? theme.sizing.inputSizes[size].paddingHorizontal - theme.spacing.xs
-      : hasLeft
-        ? theme.sizing.inputSizes[size].adornmentPadding +
-          theme.sizing.touchTarget +
-          theme.spacing.sm
-        : theme.sizing.inputSizes[size].paddingHorizontal,
-    right:
-      !floating && hasRight
-        ? theme.sizing.inputSizes[size].adornmentPadding +
-          theme.sizing.touchTarget +
-          theme.spacing.sm
-        : theme.sizing.inputSizes[size].paddingHorizontal,
-    alignItems: "flex-start",
-    justifyContent: "center",
-  }),
-  label: (floating: boolean, disabled: boolean, isError: boolean, isFocused: boolean) => ({
-    ...(floating ? theme.typography.supporting : theme.typography.body),
-    paddingHorizontal: floating ? theme.spacing.xs : 0,
-    backgroundColor: floating
-      ? disabled
-        ? theme.colors.disabledBackground
-        : theme.colors.surface
-      : theme.colors.transparent,
-    color: isError
-      ? theme.colors.semantic.danger.foreground
-      : disabled
-        ? theme.colors.disabledText
-        : isFocused
-          ? theme.colors.primary
-          : theme.colors.textMuted,
-  }),
+  labelContainerDisabled: {
+    backgroundColor: theme.colors.disabledBackground,
+  },
+  label: {
+    fontFamily: theme.fontFamily.regular,
+    fontSize: LABEL_FONT_SIZE,
+    lineHeight: LABEL_LINE_HEIGHT,
+    paddingHorizontal: theme.spacing.xs,
+    color: theme.colors.textMuted,
+  },
+  labelFloating: {
+    fontSize: FLOATING_LABEL_FONT_SIZE,
+    lineHeight: FLOATING_LABEL_LINE_HEIGHT,
+  },
+  labelFocused: {
+    color: theme.colors.primary,
+  },
+  labelDisabled: {
+    color: theme.colors.disabledText,
+  },
+  labelError: {
+    color: theme.colors.semantic.danger.foreground,
+  },
   description: (size: InputSize) => ({
     paddingHorizontal: theme.sizing.inputSizes[size].paddingHorizontal,
   }),
