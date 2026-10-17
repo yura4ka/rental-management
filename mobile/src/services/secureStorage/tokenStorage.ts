@@ -9,15 +9,29 @@ export type StoredTokens = TokenPairResponse & {
 export interface ITokenStorage {
   getTokens(): Promise<StoredTokens | null>;
   setTokens(tokens: StoredTokens): Promise<void>;
+  removeTokens(): Promise<void>;
 }
 
-export class TokenStorage {
+export class TokenStorage implements ITokenStorage {
   constructor(private readonly secureStorage: ISecureStorage) {}
 
   async getTokens(): Promise<StoredTokens | null> {
     try {
       const tokensString = await this.secureStorage.getItem("tokens");
-      return tokensString ? JSON.parse(tokensString) : null;
+      if (!tokensString) return null;
+      const tokens: StoredTokens | null = JSON.parse(tokensString);
+      if (
+        !tokens ||
+        typeof tokens.accessToken !== "string" ||
+        !tokens.accessToken ||
+        typeof tokens.refreshToken !== "string" ||
+        !tokens.refreshToken ||
+        typeof tokens.accessTokenExpiresAt !== "number" ||
+        !Number.isFinite(tokens.accessTokenExpiresAt)
+      ) {
+        return null;
+      }
+      return tokens;
     } catch {
       return null;
     }
@@ -25,5 +39,9 @@ export class TokenStorage {
 
   setTokens(tokens: StoredTokens): Promise<void> {
     return this.secureStorage.setItem("tokens", JSON.stringify(tokens));
+  }
+
+  removeTokens(): Promise<void> {
+    return this.secureStorage.removeItem("tokens");
   }
 }
