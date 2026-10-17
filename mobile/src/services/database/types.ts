@@ -8,6 +8,10 @@ export interface IDatabaseQueries {
   runAsync(sql: string, params?: SqlValue[]): Promise<SqlResult>;
 }
 
+export interface ITransactionalDatabase extends IDatabaseQueries {
+  withTransactionAsync<T>(task: (tx: IDatabaseQueries) => Promise<T>): Promise<T>;
+}
+
 export interface IDatabaseConnection extends IDatabaseQueries {
   withTransactionAsync(task: () => Promise<void>): Promise<void>;
   isInTransactionAsync(): Promise<boolean>;

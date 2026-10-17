@@ -3,13 +3,14 @@ import type {
   IDatabaseConnection,
   IDatabaseDriver,
   IDatabaseQueries,
+  ITransactionalDatabase,
   SqlResult,
   SqlValue,
 } from "./types";
 
 const databaseName = "rental_management_db";
 
-export class Database implements IDatabaseQueries {
+export class Database implements ITransactionalDatabase {
   private reader: IDatabaseConnection | null = null;
   private writer: IDatabaseConnection | null = null;
   private state: "closed" | "opening" | "open" | "closing" = "closed";
