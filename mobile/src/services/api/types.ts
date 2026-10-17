@@ -1,20 +1,3 @@
-export interface TokenPairResponse {
-  tokenType: string;
-  accessToken: string;
-  expiresIn: number;
-  refreshToken: string;
-}
-
-export interface StoredTokens extends TokenPairResponse {
-  /** Unix time in milliseconds, derived from expiresIn. */
-  accessTokenExpiresAt: number;
-}
-
-export interface ITokenStorage {
-  getTokens(): Promise<StoredTokens | null>;
-  setTokens(tokens: StoredTokens): Promise<void>;
-}
-
 export interface ILogoutManager {
   signOut(reason: "session-expired"): void | Promise<void>;
 }

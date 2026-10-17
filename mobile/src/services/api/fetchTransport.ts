@@ -1,12 +1,7 @@
+import { ITokenStorage, StoredTokens } from "@/services/secureStorage";
+import { TokenPairResponse } from "@/features/auth/types";
 import { HTTPError } from "./httpError";
-import type {
-  HTTPRequest,
-  HTTPTransport,
-  ILogoutManager,
-  ITokenStorage,
-  StoredTokens,
-  TokenPairResponse,
-} from "./types";
+import type { HTTPRequest, HTTPTransport, ILogoutManager } from "./types";
 
 function abortError(): Error {
   const error = new Error("The request was aborted.");
