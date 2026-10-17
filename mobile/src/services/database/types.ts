@@ -16,4 +16,6 @@ export interface IDatabaseConnection extends IDatabaseQueries {
 
 export interface IDatabaseDriver {
   open(name: string): Promise<IDatabaseConnection>;
+  exists(name: string): Promise<boolean>;
+  delete(name: string): Promise<void>;
 }

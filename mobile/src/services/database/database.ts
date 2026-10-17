@@ -1,3 +1,4 @@
+import { currentVersion, migrations } from "./migrations";
 import type {
   IDatabaseConnection,
   IDatabaseDriver,
@@ -18,6 +19,29 @@ export class Database implements IDatabaseQueries {
   private readonly operations = new Set<Promise<unknown>>();
 
   constructor(private readonly driver: IDatabaseDriver) {}
+
+  existsAsync(): Promise<boolean> {
+    return this.driver.exists(databaseName);
+  }
+
+  async deleteAsync(): Promise<void> {
+    await this.closeAsync();
+    await this.driver.delete(databaseName);
+  }
+
+  async runMigrationsAsync(): Promise<void> {
+    await this.withTransactionAsync(async (tx) => {
+      const row = await tx.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
+      const version = row?.user_version ?? 0;
+      if (version > currentVersion) throw new Error("The database requires a newer app version.");
+      for (let index = version; index < currentVersion; index++) {
+        for (const sql of migrations[index]) {
+          await tx.execAsync(sql);
+        }
+        await tx.execAsync(`PRAGMA user_version = ${index + 1};`);
+      }
+    });
+  }
 
   openAsync(key: string): Promise<void> {
     if (this.state === "closing") {
@@ -101,6 +125,7 @@ PRAGMA journal_mode = WAL;`;
 
       writer = await this.driver.open(databaseName);
       await writer.execAsync(pragmas);
+      await writer.getFirstAsync("SELECT count(*) FROM sqlite_master");
       reader = await this.driver.open(databaseName);
       await reader.execAsync(pragmas);
       await reader.execAsync("PRAGMA query_only = ON;");
