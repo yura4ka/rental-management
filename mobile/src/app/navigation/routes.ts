@@ -13,4 +13,5 @@ export const enum Routes {
   Home = "Home",
   AvailableUnits = "AvailableUnits",
   MyProperties = "MyProperties",
+  PropertyDetails = "PropertyDetails",
 }

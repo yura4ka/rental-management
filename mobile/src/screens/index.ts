@@ -7,3 +7,4 @@ export * from "./NoConnectionScreen";
 export * from "./ProfileScreen";
 export * from "./AvailableUnitsScreen";
 export * from "./MyPropertiesScreen";
+export * from "./PropertyDetailsScreen";

@@ -29,6 +29,7 @@ export type UnauthenticatedStackScreenProps<T extends keyof UnauthenticatedStack
 export type AuthenticatedStackParamList = {
   [Routes.Loading]: undefined;
   [Routes.Profile]: undefined;
+  [Routes.PropertyDetails]: { propertyId: string };
   [Routes.BottomTabs]: NavigatorScreenParams<BottomTabsParamList>;
 };
 
