@@ -2,7 +2,7 @@ import type { ComponentProps } from "react";
 import { ActivityIndicator, TouchableOpacity, View } from "react-native";
 import { StyleSheet, type UnistylesVariants } from "react-native-unistyles";
 import type { IconName } from "@/app/assets/icons";
-import { Icon } from "@/components/Icon/Icon";
+import { Icon } from "@/components/Icon";
 import { Text } from "../Text";
 
 export type ButtonProps = Omit<ComponentProps<typeof TouchableOpacity>, "children"> &

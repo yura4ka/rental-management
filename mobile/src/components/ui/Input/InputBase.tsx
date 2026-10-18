@@ -10,7 +10,7 @@ import Animated from "react-native-reanimated";
 import { StyleSheet } from "react-native-unistyles";
 import { useAnimatedVariantColor } from "react-native-unistyles/reanimated";
 import { IconName } from "@/app/assets/icons";
-import { Icon } from "@/components/Icon/Icon";
+import { Icon } from "@/components/Icon";
 import { StyledActivityIndicator } from "../../StyledActivityIndicator";
 import { Text } from "../Text";
 

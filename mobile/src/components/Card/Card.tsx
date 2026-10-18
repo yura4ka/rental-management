@@ -2,7 +2,7 @@ import type { ComponentProps } from "react";
 import { View } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
 import type { IconName } from "@/app/assets/icons";
-import { Icon } from "@/components/Icon/Icon";
+import { Icon } from "@/components/Icon";
 import { Text } from "@/components/ui/Text";
 
 export type CardRootProps = ComponentProps<typeof View>;
