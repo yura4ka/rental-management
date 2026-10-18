@@ -9,9 +9,12 @@ import TIconArrowsSortOutline from "@/assets/tabler/outline/arrows-sort.svg";
 import TIconBedOutline from "@/assets/tabler/outline/bed.svg";
 import TIconBuildingOutline from "@/assets/tabler/outline/building.svg";
 import TIconChevronLeftOutline from "@/assets/tabler/outline/chevron-left.svg";
+import TIconClockOutline from "@/assets/tabler/outline/clock.svg";
 import TIconHomeOutline from "@/assets/tabler/outline/home.svg";
+import TIconLogoutOutline from "@/assets/tabler/outline/logout.svg";
 import TIconPencilOutline from "@/assets/tabler/outline/pencil.svg";
 import TIconPlus from "@/assets/tabler/filled/plus.svg";
+import TIconUserOutline from "@/assets/tabler/outline/user.svg";
 import TIconX from "@/assets/tabler/filled/x.svg";
 
 const tabler = {
@@ -22,9 +25,12 @@ const tabler = {
   TIconBedOutline,
   TIconBuildingOutline,
   TIconChevronLeftOutline,
+  TIconClockOutline,
   TIconHomeOutline,
+  TIconLogoutOutline,
   TIconPencilOutline,
   TIconPlus,
+  TIconUserOutline,
   TIconX,
 };
 

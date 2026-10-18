@@ -29,6 +29,7 @@ export type UnauthenticatedStackScreenProps<T extends keyof UnauthenticatedStack
 export type AuthenticatedStackParamList = {
   [Routes.Loading]: undefined;
   [Routes.Profile]: undefined;
+  [Routes.PendingOperations]: undefined;
   [Routes.PropertyDetails]: { propertyId: string };
   [Routes.ApplicationDetails]: { applicationId: string };
   [Routes.ApplicationForm]:

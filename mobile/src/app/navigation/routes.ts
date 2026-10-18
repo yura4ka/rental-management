@@ -9,6 +9,7 @@ export const enum Routes {
   AuthenticatedStack = "AuthenticatedStack",
   Loading = "Loading",
   Profile = "Profile",
+  PendingOperations = "PendingOperations",
   BottomTabs = "Tabs",
   Home = "Home",
   AvailableUnits = "AvailableUnits",

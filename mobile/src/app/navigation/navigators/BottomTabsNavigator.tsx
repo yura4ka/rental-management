@@ -26,6 +26,7 @@ export function BottomTabsNavigator() {
         component={HomeScreen}
         options={{
           title: "Home",
+          headerShown: false,
           tabBarIcon: TabBarElements.HomeIcon,
         }}
       />

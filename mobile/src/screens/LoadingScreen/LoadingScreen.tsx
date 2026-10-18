@@ -1,16 +1,23 @@
 import { useEffect } from "react";
 import { View } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
+import { toast } from "sonner-native";
 import { StyledActivityIndicator } from "@/components";
 import { Routes } from "@/app/navigation/routes";
 import type { AuthenticatedStackScreenProps } from "@/app/navigation/types";
+import { useProcessOperations } from "@/features/operations/hooks";
 
 type LoadingScreenProps = AuthenticatedStackScreenProps<Routes.Loading>;
 
 export function LoadingScreen({ navigation }: LoadingScreenProps) {
+  const { mutateAsync: processOperations } = useProcessOperations();
+
   useEffect(() => {
+    void processOperations().catch(() => {
+      toast.error("Could not sync pending operations. Open Pending operations to retry.");
+    });
     navigation.replace(Routes.BottomTabs, { screen: Routes.Home });
-  }, [navigation]);
+  }, [navigation, processOperations]);
 
   return (
     <View style={styles.container}>

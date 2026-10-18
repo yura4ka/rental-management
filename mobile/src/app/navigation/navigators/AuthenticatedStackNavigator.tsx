@@ -7,6 +7,8 @@ import { useHeaderScreenOptions } from "@/app/navigation/common/useHeaderScreenO
 import { PropertyDetailsScreen } from "@/screens/PropertyDetailsScreen";
 import { ApplicationDetailsScreen } from "@/screens/ApplicationDetailsScreen/ApplicationDetailsScreen";
 import { ApplicationFormScreen } from "@/screens/ApplicationFormScreen/ApplicationFormScreen";
+import { PendingOperationsScreen } from "@/screens/PendingOperationsScreen";
+import { LogoutButton } from "@/features/auth/components/LogoutButton";
 
 const Stack = createNativeStackNavigator<AuthenticatedStackParamList>();
 
@@ -18,6 +20,11 @@ export function AuthenticatedStackNavigator() {
       <Stack.Screen name={Routes.BottomTabs} component={BottomTabsNavigator} />
 
       <Stack.Group screenOptions={headerOptions}>
+        <Stack.Screen
+          name={Routes.PendingOperations}
+          component={PendingOperationsScreen}
+          options={{ title: "Pending operations" }}
+        />
         <Stack.Screen
           name={Routes.ApplicationForm}
           component={ApplicationFormScreen}
@@ -36,7 +43,7 @@ export function AuthenticatedStackNavigator() {
         <Stack.Screen
           name={Routes.Profile}
           component={ProfileScreen}
-          options={{ title: "Profile" }}
+          options={{ title: "Profile", headerRight: () => <LogoutButton /> }}
         />
       </Stack.Group>
     </Stack.Navigator>
