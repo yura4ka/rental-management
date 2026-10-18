@@ -16,6 +16,14 @@ import { OperationsService } from "@/features/operations/operationsService";
 import type { HTTPTransport } from "@/services/api";
 import type { ITransactionalDatabase } from "@/services/database/types";
 import type { INetwork } from "@/services/network";
+import { PropertiesApi } from "@/features/properties/propertiesApi";
+import { PropertiesRepository } from "@/features/properties/propertiesRepository";
+import { PropertiesService } from "@/features/properties/propertiesService";
+import { createPropertyHandlers } from "@/features/properties/operations/handlers";
+import { UnitsApi } from "@/features/units/unitsApi";
+import { UnitsRepository } from "@/features/units/unitsRepository";
+import { UnitsService } from "@/features/units/unitsService";
+import { createUnitHandlers } from "@/features/units/operations/handlers";
 
 type SessionServiceDependencies = {
   api: HTTPTransport;
@@ -28,8 +36,14 @@ export function createServices({ api, db, network, sessionSignal }: SessionServi
   const auth = new AuthService(new AuthApi(api), new AuthRepository(db), network, sessionSignal);
   const profileApi = new ApplicantProfileApi(api);
   const profileRepository = new ApplicantProfileRepository(db);
+  const propertiesApi = new PropertiesApi(api);
+  const propertiesRepository = new PropertiesRepository(db);
+  const unitsApi = new UnitsApi(api);
+  const unitsRepository = new UnitsRepository(db);
   const handlers = {
     ...createApplicantProfileHandlers(profileApi, profileRepository),
+    ...createPropertyHandlers(propertiesApi, propertiesRepository),
+    ...createUnitHandlers(unitsApi, unitsRepository),
   } satisfies CommandHandlers<Commands>;
   const operations = new OperationsService(
     new OperationsRepository(db),
@@ -47,6 +61,14 @@ export function createServices({ api, db, network, sessionSignal }: SessionServi
     sessionSignal,
   );
   return {
+    properties: new PropertiesService(
+      propertiesApi,
+      propertiesRepository,
+      operations,
+      network,
+      sessionSignal,
+    ),
+    units: new UnitsService(unitsApi, unitsRepository, operations, network, sessionSignal),
     inventory: new InventoryService(
       new InventoryApi(api),
       new InventoryRepository(db),

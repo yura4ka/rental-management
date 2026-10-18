@@ -180,6 +180,11 @@ export const migrations: readonly (readonly string[])[] = [
       PRIMARY KEY(formId, section)
     );`,
   ],
+  [
+    `CREATE TABLE owned_properties (
+      propertyId TEXT PRIMARY KEY NOT NULL REFERENCES properties(id) ON DELETE CASCADE
+    );`,
+  ],
 ];
 
 export const currentVersion = migrations.length;

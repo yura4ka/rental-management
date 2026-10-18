@@ -106,19 +106,9 @@ export class InventoryRepository {
       );
     }
     for (const item of response.items) {
-      const { address, ...property } = item.property;
-      await this.upsert(
-        "properties",
-        {
-          ...property,
-          addressDisplayName: address.displayName,
-          addressStreetAddress: address.streetAddress,
-          addressLine2: address.line2,
-        },
-        tx,
-      );
+      await this.saveProperty(item.property, tx);
       await this.saveUnitTypes([item.unitType], tx);
-      await this.upsert("units", item.unit, tx);
+      await this.saveUnit(item.unit, tx);
       await tx.runAsync(
         `INSERT INTO available_units (unitId, fetchedAt) VALUES (?, ?)
         ON CONFLICT(unitId) DO UPDATE SET fetchedAt = excluded.fetchedAt`,
@@ -132,6 +122,29 @@ export class InventoryRepository {
       return this.db.withTransactionAsync((transaction) => this.saveUnitTypes(types, transaction));
     for (const type of types)
       await this.upsert("unit_types", { ...type, isActive: type.isActive ? 1 : 0 }, tx);
+  }
+
+  async saveProperty(property: PropertyDto, tx?: IDatabaseQueries): Promise<void> {
+    if (!tx)
+      return this.db.withTransactionAsync((transaction) =>
+        this.saveProperty(property, transaction),
+      );
+    const { address, ...record } = property;
+    await this.upsert(
+      "properties",
+      {
+        ...record,
+        addressDisplayName: address.displayName,
+        addressStreetAddress: address.streetAddress,
+        addressLine2: address.line2,
+      },
+      tx,
+    );
+  }
+
+  async saveUnit(unit: UnitDto, tx?: IDatabaseQueries): Promise<void> {
+    if (!tx) return this.db.withTransactionAsync((transaction) => this.saveUnit(unit, transaction));
+    await this.upsert("units", unit, tx);
   }
 
   // Whitelist identifiers: HTTP responses may contain fields outside the TypeScript DTO.
