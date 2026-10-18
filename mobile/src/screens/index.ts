@@ -6,3 +6,4 @@ export * from "./RegisterScreen";
 export * from "./NoConnectionScreen";
 export * from "./ProfileScreen";
 export * from "./AvailableUnitsScreen";
+export * from "./MyPropertiesScreen";

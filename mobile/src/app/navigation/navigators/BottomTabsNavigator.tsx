@@ -4,11 +4,14 @@ import { Routes } from "@/app/navigation/routes";
 import { TabBarElements } from "@/app/navigation/components";
 import { useHeaderScreenOptions } from "@/app/navigation/common";
 import { AvailableUnitsScreen, HomeScreen } from "@/screens";
+import { MyPropertiesScreen } from "@/screens/MyPropertiesScreen";
+import { useSessionState } from "@/services/session";
 
 const Tab = createBottomTabNavigator<BottomTabsParamList>();
 
 export function BottomTabsNavigator() {
   const headerOptions = useHeaderScreenOptions();
+  const account = useSessionState((state) => state.account);
 
   return (
     <Tab.Navigator
@@ -30,6 +33,13 @@ export function BottomTabsNavigator() {
         component={AvailableUnitsScreen}
         options={{ title: "Browse", tabBarIcon: TabBarElements.AvailableUnitsIcon }}
       />
+      {account?.role === "PropertyManager" && (
+        <Tab.Screen
+          name={Routes.MyProperties}
+          component={MyPropertiesScreen}
+          options={{ title: "My Properties", tabBarIcon: TabBarElements.AvailableUnitsIcon }}
+        />
+      )}
     </Tab.Navigator>
   );
 }

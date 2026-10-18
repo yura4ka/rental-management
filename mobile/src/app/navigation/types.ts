@@ -41,6 +41,7 @@ export type AuthenticatedStackScreenProps<T extends keyof AuthenticatedStackPara
 export type BottomTabsParamList = {
   [Routes.Home]: undefined;
   [Routes.AvailableUnits]: undefined;
+  [Routes.MyProperties]: undefined;
 };
 
 export type BottomTabsScreenProps<T extends keyof BottomTabsParamList> = CompositeScreenProps<
