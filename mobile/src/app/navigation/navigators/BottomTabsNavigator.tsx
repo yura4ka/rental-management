@@ -6,6 +6,7 @@ import { useHeaderScreenOptions } from "@/app/navigation/common";
 import { AvailableUnitsScreen, HomeScreen } from "@/screens";
 import { MyPropertiesScreen } from "@/screens/MyPropertiesScreen";
 import { useSessionState } from "@/services/session";
+import { ApplicationsScreen } from "@/screens/ApplicationsScreen/ApplicationsScreen";
 
 const Tab = createBottomTabNavigator<BottomTabsParamList>();
 
@@ -40,6 +41,11 @@ export function BottomTabsNavigator() {
           options={{ title: "My Properties", tabBarIcon: TabBarElements.AvailableUnitsIcon }}
         />
       )}
+      <Tab.Screen
+        name={Routes.Applications}
+        component={ApplicationsScreen}
+        options={{ title: "Applications", tabBarIcon: TabBarElements.ApplicationsIcon }}
+      />
     </Tab.Navigator>
   );
 }

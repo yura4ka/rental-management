@@ -43,6 +43,7 @@ export type BottomTabsParamList = {
   [Routes.Home]: undefined;
   [Routes.AvailableUnits]: undefined;
   [Routes.MyProperties]: undefined;
+  [Routes.Applications]: undefined;
 };
 
 export type BottomTabsScreenProps<T extends keyof BottomTabsParamList> = CompositeScreenProps<
