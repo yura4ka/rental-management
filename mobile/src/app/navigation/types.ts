@@ -30,6 +30,7 @@ export type AuthenticatedStackParamList = {
   [Routes.Loading]: undefined;
   [Routes.Profile]: undefined;
   [Routes.PropertyDetails]: { propertyId: string };
+  [Routes.ApplicationDetails]: { applicationId: string };
   [Routes.BottomTabs]: NavigatorScreenParams<BottomTabsParamList>;
 };
 

@@ -10,13 +10,17 @@ export function ConfirmationBottomSheet({
   title,
   message,
   confirmTitle = "Archive",
+  successMessage = "Archived on server.",
+  pendingMessage = "Pending sync. The archive has not been confirmed by the server.",
   onConfirm,
   onClose,
 }: {
   title: string;
   message: string;
   confirmTitle?: string;
-  onConfirm: () => Promise<OperationResult>;
+  successMessage?: string;
+  pendingMessage?: string;
+  onConfirm: () => Promise<OperationResult | void>;
   onClose: () => void;
 }) {
   const sheet = useRef<TrueSheet>(null);
@@ -33,8 +37,8 @@ export function ConfirmationBottomSheet({
     setError("");
     try {
       const result = await onConfirm();
-      if (result.status === "Accepted") {
-        toast.success("Archived on server.");
+      if (!result || result.status === "Accepted") {
+        toast.success(successMessage);
         await sheet.current?.dismiss();
       } else setPending(true);
     } catch (error) {
@@ -51,11 +55,7 @@ export function ConfirmationBottomSheet({
         <BottomSheet.Body>
           <Text>{message}</Text>
           {!!error && <Text accessibilityRole="alert">{error}</Text>}
-          {pending && (
-            <Text accessibilityLiveRegion="polite">
-              Pending sync. The archive has not been confirmed by the server.
-            </Text>
-          )}
+          {pending && <Text accessibilityLiveRegion="polite">{pendingMessage}</Text>}
         </BottomSheet.Body>
         <BottomSheet.Footer>
           <Button

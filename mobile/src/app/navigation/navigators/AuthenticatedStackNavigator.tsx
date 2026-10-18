@@ -5,6 +5,7 @@ import { BottomTabsNavigator } from "@/app/navigation/navigators/BottomTabsNavig
 import { ProfileScreen, LoadingScreen } from "@/screens";
 import { useHeaderScreenOptions } from "@/app/navigation/common/useHeaderScreenOptions";
 import { PropertyDetailsScreen } from "@/screens/PropertyDetailsScreen";
+import { ApplicationDetailsScreen } from "@/screens/ApplicationDetailsScreen/ApplicationDetailsScreen";
 
 const Stack = createNativeStackNavigator<AuthenticatedStackParamList>();
 
@@ -16,6 +17,11 @@ export function AuthenticatedStackNavigator() {
       <Stack.Screen name={Routes.BottomTabs} component={BottomTabsNavigator} />
 
       <Stack.Group screenOptions={headerOptions}>
+        <Stack.Screen
+          name={Routes.ApplicationDetails}
+          component={ApplicationDetailsScreen}
+          options={{ title: "Application details" }}
+        />
         <Stack.Screen
           name={Routes.PropertyDetails}
           component={PropertyDetailsScreen}

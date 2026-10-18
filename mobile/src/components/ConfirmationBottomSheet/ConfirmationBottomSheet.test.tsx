@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { toast } from "sonner-native";
 import { ConfirmationBottomSheet } from "./ConfirmationBottomSheet";
 
 const mockDismiss = jest.fn().mockResolvedValue(undefined);
@@ -46,6 +47,22 @@ jest.mock("@/components/ui", () => {
 });
 
 beforeEach(() => jest.clearAllMocks());
+
+it("uses action-specific success feedback for a confirmed local draft discard", async () => {
+  await render(
+    <ConfirmationBottomSheet
+      title="Discard draft?"
+      message="Discard local input?"
+      confirmTitle="Discard"
+      successMessage="Local draft discarded."
+      onConfirm={jest.fn().mockResolvedValue(undefined)}
+      onClose={jest.fn()}
+    />,
+  );
+  await fireEvent.press(screen.getByRole("button", { name: "Discard" }));
+  await waitFor(() => expect(mockDismiss).toHaveBeenCalledTimes(1));
+  expect(toast.success).toHaveBeenCalledWith("Local draft discarded.");
+});
 
 it("only dismisses after a server-accepted archive", async () => {
   const onConfirm = jest
