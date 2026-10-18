@@ -1,32 +1,34 @@
 import { useEffect } from "react";
-import { View } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
-import { Text } from "@/components/ui";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Button, Text } from "@/components/ui";
 import { useSession, useSessionState } from "@/services/session";
 import { StyledActivityIndicator } from "@/components";
 
 export function InitializingScreen() {
   const session = useSession();
   const error = useSessionState((state) => state.error);
+  const isBusy = useSessionState((state) => state.isBusy);
 
   useEffect(() => {
     session.init().catch(() => {});
   }, [session]);
 
   return (
-    <View style={styles.container}>
-      {error !== null ? (
-        <Text color="danger.foreground" align="center" accessibilityRole="alert">
-          {error instanceof Error
-            ? error.message
-            : typeof error === "string"
-              ? error
-              : "Unable to initialize the session."}
-        </Text>
+    <SafeAreaView style={styles.container}>
+      {error && !isBusy ? (
+        <>
+          <Text accessibilityRole="header">Unable to start the app</Text>
+          <Text>{error instanceof Error ? error.message : "Please try again."}</Text>
+          <Button title="Retry" onPress={() => session.init().catch(() => {})} />
+        </>
       ) : (
-        <StyledActivityIndicator size="large" color={"primary"} accessibilityLabel="Loading" />
+        <>
+          <StyledActivityIndicator accessibilityLabel="Initializing" />
+          <Text>Getting things ready…</Text>
+        </>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
