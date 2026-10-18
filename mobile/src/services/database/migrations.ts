@@ -185,6 +185,12 @@ export const migrations: readonly (readonly string[])[] = [
       propertyId TEXT PRIMARY KEY NOT NULL REFERENCES properties(id) ON DELETE CASCADE
     );`,
   ],
+  [
+    // A partial cache cannot enforce a server-wide uniqueness invariant: a newer open row
+    // may arrive before the cached predecessor's terminal status is downloaded.
+    `DROP INDEX applications_one_open_per_unit;`,
+    `CREATE INDEX applications_applicant_unit ON applications(applicantId, unitId);`,
+  ],
 ];
 
 export const currentVersion = migrations.length;

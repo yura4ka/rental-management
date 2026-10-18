@@ -28,13 +28,13 @@ export type ApproveApplicationResponse = MutationResponse<GetApplicationResponse
 export type SaveManagerNoteRequestParams = { id: string };
 export type SaveManagerNoteRequestBody = OperationRequestBody & {
   expectedVersion: string | null;
-  body: string | null;
+  body: string;
 };
 export type SaveManagerNoteResponse = MutationResponse<ManagerNoteDto>;
 
 export type RejectAllApplicationsRequestParams = { unitId: string };
 export type RejectAllApplicationsRequestBody = OperationRequestBody & {
-  comment: string | null;
+  comment: string;
 };
 export type RejectAllApplicationsResponse = MutationResponse<{ affectedCount: number }>;
 

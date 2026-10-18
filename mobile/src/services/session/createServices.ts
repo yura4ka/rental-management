@@ -24,6 +24,15 @@ import { UnitsApi } from "@/features/units/unitsApi";
 import { UnitsRepository } from "@/features/units/unitsRepository";
 import { UnitsService } from "@/features/units/unitsService";
 import { createUnitHandlers } from "@/features/units/operations/handlers";
+import { ApplicationsApi } from "@/features/applications/applicationsApi";
+import { ApplicationsRepository } from "@/features/applications/applicationsRepository";
+import { ApplicationEditorRepository } from "@/features/applications/applicationEditorRepository";
+import { ApplicationsService } from "@/features/applications/applicationsService";
+import { createApplicationHandlers } from "@/features/applications/operations/handlers";
+import { ApplicationReviewsApi } from "@/features/applicationReviews/applicationReviewsApi";
+import { ApplicationReviewsRepository } from "@/features/applicationReviews/applicationReviewsRepository";
+import { ApplicationReviewsService } from "@/features/applicationReviews/applicationReviewsService";
+import { createApplicationReviewHandlers } from "@/features/applicationReviews/operations/handlers";
 
 type SessionServiceDependencies = {
   api: HTTPTransport;
@@ -40,10 +49,20 @@ export function createServices({ api, db, network, sessionSignal }: SessionServi
   const propertiesRepository = new PropertiesRepository(db);
   const unitsApi = new UnitsApi(api);
   const unitsRepository = new UnitsRepository(db);
+  const applicationsApi = new ApplicationsApi(api);
+  const applicationsRepository = new ApplicationsRepository(db);
+  const applicationReviewsApi = new ApplicationReviewsApi(api);
+  const applicationReviewsRepository = new ApplicationReviewsRepository(db, applicationsRepository);
   const handlers = {
     ...createApplicantProfileHandlers(profileApi, profileRepository),
     ...createPropertyHandlers(propertiesApi, propertiesRepository),
     ...createUnitHandlers(unitsApi, unitsRepository),
+    ...createApplicationHandlers(applicationsApi, applicationsRepository),
+    ...createApplicationReviewHandlers(
+      applicationReviewsApi,
+      applicationsRepository,
+      applicationReviewsRepository,
+    ),
   } satisfies CommandHandlers<Commands>;
   const operations = new OperationsService(
     new OperationsRepository(db),
@@ -61,6 +80,20 @@ export function createServices({ api, db, network, sessionSignal }: SessionServi
     sessionSignal,
   );
   return {
+    applications: new ApplicationsService(
+      applicationsApi,
+      applicationsRepository,
+      new ApplicationEditorRepository(db),
+      operations,
+      network,
+      sessionSignal,
+    ),
+    applicationReviews: new ApplicationReviewsService(
+      applicationsRepository,
+      applicationReviewsRepository,
+      operations,
+      sessionSignal,
+    ),
     properties: new PropertiesService(
       propertiesApi,
       propertiesRepository,

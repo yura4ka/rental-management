@@ -55,11 +55,11 @@ export type ManagerNoteDto = {
 
 export type GetApplicationsRequestParams = {
   page?: number;
-  status?: string | null;
+  status?: ApplicationStatus | null;
   propertyId?: string | null;
   showArchived?: boolean;
-  sortBy?: string;
-  sortDirection?: string;
+  sortBy?: "createdAt" | "statusChangedAt";
+  sortDirection?: "asc" | "desc";
 };
 
 export type GetApplicationsResponse = {
@@ -85,7 +85,7 @@ export type GetApplicationResponse = {
 export type CreateApplicationRequestBody = OperationRequestBody & {
   id: string;
   unitId: string;
-  applicantInformation: ApplicantInformationDto | null;
+  applicantInformation: ApplicantInformationDto;
 };
 
 export type CreateApplicationResponse = MutationResponse<GetApplicationResponse>;
