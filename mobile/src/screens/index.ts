@@ -5,3 +5,4 @@ export * from "./LoginScreen";
 export * from "./RegisterScreen";
 export * from "./NoConnectionScreen";
 export * from "./ProfileScreen";
+export * from "./AvailableUnitsScreen";

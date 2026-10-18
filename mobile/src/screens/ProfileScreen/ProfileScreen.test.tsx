@@ -41,6 +41,9 @@ jest.mock("react-native-unistyles", () => ({
   useUnistyles: () => ({ theme: { colors: { surface: "white" }, radius: { card: 16 } } }),
 }));
 jest.mock("@/components/Icon", () => ({ Icon: () => null }));
+jest.mock("@/components/layout", () => ({
+  ScrollViewLayout: jest.requireActual("react-native").ScrollView,
+}));
 jest.mock("@/components/ui/Input", () => {
   const { TextInput, Text, View, TouchableOpacity } = jest.requireActual("react-native");
   return {

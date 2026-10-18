@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
 import { Card } from "@/components/Card";
+import { LabelValue } from "@/components/LabelValue";
 import { Button, Text } from "@/components/ui";
 import { getAddressDisplayName } from "@/features/address/utils";
 import { ProfileInformationEditor } from "@/features/applicantProfile/components/ProfileInformationEditor";
@@ -13,17 +14,6 @@ import { useGetAccount } from "@/features/auth/hooks";
 import { ScrollViewLayout } from "@/components/layout";
 
 type Editor = { section: "information" | "residences"; profile: GetApplicantProfileResponse };
-
-function ProfileValue({ label, value }: { label: string; value?: string | null }) {
-  return (
-    <View style={styles.value}>
-      <Text variant="supporting" color="textSecondary">
-        {label}
-      </Text>
-      <Text>{value || "Not provided"}</Text>
-    </View>
-  );
-}
 
 export function ProfileScreen() {
   const profile = useApplicantProfile();
@@ -75,7 +65,18 @@ export function ProfileScreen() {
             </View>
           </Card.Header>
           <Card.Body>
-            <ProfileValue label="Email" value={account.data?.email} />
+            <LabelValue
+              items={[
+                { label: "Email", value: account.data?.email },
+                { label: "Name", value: information.name },
+                { label: "Phone", value: information.phone },
+                { label: "Contact email", value: information.contactEmail },
+                {
+                  label: "Current address",
+                  value: getAddressDisplayName(information.currentAddress),
+                },
+              ]}
+            />
             {account.isError && (
               <Button
                 title="Retry email"
@@ -83,13 +84,6 @@ export function ProfileScreen() {
                 onPress={() => void account.refetch()}
               />
             )}
-            <ProfileValue label="Name" value={information.name} />
-            <ProfileValue label="Phone" value={information.phone} />
-            <ProfileValue label="Contact email" value={information.contactEmail} />
-            <ProfileValue
-              label="Current address"
-              value={getAddressDisplayName(information.currentAddress)}
-            />
           </Card.Body>
         </Card.Root>
         <Card.Root>

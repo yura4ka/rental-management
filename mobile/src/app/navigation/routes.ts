@@ -11,4 +11,5 @@ export const enum Routes {
   Profile = "Profile",
   BottomTabs = "Tabs",
   Home = "Home",
+  AvailableUnits = "AvailableUnits",
 }

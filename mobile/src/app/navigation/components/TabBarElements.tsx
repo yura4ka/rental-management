@@ -13,6 +13,7 @@ const TabIcon = ({ name, color, size }: IconProps & { name: IconName }) => {
 };
 
 const HomeIcon = (props: IconProps) => <TabIcon {...props} name={"TIconHomeOutline"} />;
+const AvailableUnitsIcon = (props: IconProps) => <TabIcon {...props} name="TIconBuildingOutline" />;
 
 type LabelProps = {
   focused: boolean;
@@ -36,5 +37,6 @@ const TabLabel = ({ focused, children }: LabelProps) => {
 
 export const TabBarElements = {
   HomeIcon,
+  AvailableUnitsIcon,
   TabLabel,
 };
