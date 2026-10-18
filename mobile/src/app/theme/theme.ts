@@ -191,9 +191,7 @@ export const lightTheme = {
   borderWidth: { default: 1, focused: 2 },
   sizing: {
     touchTarget: 48,
-    buttonMinHeight: 48,
-    inputMinHeight: 52,
-    inputSizes: {
+    touchableSizes: {
       sm: { minHeight: 48, paddingHorizontal: 12, adornmentPadding: 8 },
       base: { minHeight: 56, paddingHorizontal: 16, adornmentPadding: 12 },
       lg: { minHeight: 64, paddingHorizontal: 20, adornmentPadding: 16 },
@@ -203,17 +201,9 @@ export const lightTheme = {
     iconLarge: 28,
   },
   shadows: {
-    none: {
-      boxShadow: "0px 0px 0px 0px rgba(0, 0, 0, 0)",
-    },
-    card: {
-      boxShadow: "0px 2px 8px 0px rgba(15, 23, 42, 0.05)",
-    },
-    raised: {
-      boxShadow: "0px 4px 12px 0px rgba(15, 23, 42, 0.08)",
-    },
-    modal: {
-      boxShadow: "0px 12px 32px 0px rgba(15, 23, 42, 0.16)",
-    },
-  } satisfies Record<string, ViewStyle>,
+    none: "0px 0px 0px 0px rgba(0, 0, 0, 0)",
+    card: "0px 2px 8px 0px rgba(15, 23, 42, 0.05)",
+    raised: "0px 4px 12px 0px rgba(15, 23, 42, 0.08)",
+    modal: "0px 12px 32px 0px rgba(15, 23, 42, 0.16)",
+  },
 } as const;
