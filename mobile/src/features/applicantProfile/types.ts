@@ -1,10 +1,7 @@
 import type { MutationResponse, OperationRequestBody } from "../operations/types";
+import type { Address } from "../address/types";
 
-export type ProfileAddressDto = {
-  displayName: string | null;
-  streetAddress: string | null;
-  line2: string | null;
-};
+export type ProfileAddressDto = Address;
 
 export type ApplicantInformationDto = {
   name: string | null;

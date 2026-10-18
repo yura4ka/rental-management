@@ -6,6 +6,8 @@ import TIconArrowLeftOutline from "@/assets/tabler/outline/arrow-left.svg";
 import TIconArrowRightOutline from "@/assets/tabler/outline/arrow-right.svg";
 import TIconChevronLeftOutline from "@/assets/tabler/outline/chevron-left.svg";
 import TIconHomeOutline from "@/assets/tabler/outline/home.svg";
+import TIconPencilOutline from "@/assets/tabler/outline/pencil.svg";
+import TIconPlus from "@/assets/tabler/filled/plus.svg";
 import TIconX from "@/assets/tabler/filled/x.svg";
 
 const tabler = {
@@ -13,6 +15,8 @@ const tabler = {
   TIconArrowRightOutline,
   TIconChevronLeftOutline,
   TIconHomeOutline,
+  TIconPencilOutline,
+  TIconPlus,
   TIconX,
 };
 

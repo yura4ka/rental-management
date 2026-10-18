@@ -13,7 +13,7 @@ export const profileInformationInput = z
       .object({
         name: z.string().max(100).nullable(),
         phone: phoneSchema.nullable(),
-        contactEmail: z.string().max(254).email().nullable(),
+        contactEmail: z.email().max(254).nullable(),
         currentAddress: addressSchema.nullable(),
       })
       .strict(),
