@@ -39,7 +39,10 @@ export function ProfileScreen() {
   const information = data.applicantInformation;
   return (
     <>
-      <ScrollViewLayout contentContainerStyle={styles.container}>
+      <ScrollViewLayout
+        edges={["bottom", "left", "right"]}
+        contentContainerStyle={styles.container}
+      >
         {profile.isError && (
           <View style={styles.value}>
             <Text color="warning.foreground">

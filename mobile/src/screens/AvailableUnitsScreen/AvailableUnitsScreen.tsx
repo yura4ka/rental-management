@@ -1,5 +1,5 @@
 import { useCallback, useLayoutEffect, useMemo, useState } from "react";
-import { ActivityIndicator, FlatList, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
 import { Routes } from "@/app/navigation/routes";
 import type { BottomTabsScreenProps } from "@/app/navigation/types";
@@ -19,6 +19,7 @@ import {
 } from "@/features/inventory/forms";
 import { useAvailableUnits } from "@/features/inventory/hooks";
 import type { AvailableUnitDto } from "@/features/inventory/types";
+import { FlatListLayout } from "@/components/layout";
 
 type Sheet = { kind: "filters" } | { kind: "sort" } | { kind: "details"; item: AvailableUnitDto };
 
@@ -74,7 +75,8 @@ export function AvailableUnitsScreen({ navigation }: BottomTabsScreenProps<Route
 
   return (
     <>
-      <FlatList
+      <FlatListLayout
+        edges={["left", "right"]}
         data={items}
         keyExtractor={(item) => item.unit.id}
         contentContainerStyle={styles.list}
