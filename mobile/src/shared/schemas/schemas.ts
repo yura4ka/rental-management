@@ -1,12 +1,7 @@
 import { z } from "zod";
 
-export const addressSchema = z
-  .object({
-    displayName: z.string().max(100).nullable(),
-    streetAddress: z.string().max(200).nullable(),
-    line2: z.string().max(100).nullable(),
-  })
-  .strict();
+// Compatibility export for existing command schemas; address contracts belong to the feature.
+export { addressSchema } from "@/features/address/schemas";
 
 export const pastUtcMidnightDateSchema = z
   .string()
