@@ -1,4 +1,5 @@
 export * from "./BottomSheet";
+export * from "./DatePickerBottomSheet";
 export * from "./Card";
 export * from "./StyledActivityIndicator";
 export * from "./Icon";
