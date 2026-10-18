@@ -2,7 +2,7 @@ import type { QueryClient } from "@tanstack/react-query";
 import { createStore } from "zustand/vanilla";
 import { AuthApi } from "@/features/auth/authApi";
 import { AuthRepository } from "@/features/auth/authRepository";
-import { SessionMismatchError } from "@/features/auth/authService";
+import { AuthService, SessionMismatchError } from "@/features/auth/authService";
 import type { GetCurrentAccountResponse, LoginRequestBody } from "@/features/auth/types";
 import { HTTPError, isOfflineError, type HTTPTransport } from "@/services/api";
 import type { Database } from "@/services/database";
@@ -20,6 +20,8 @@ export type SessionState = {
 };
 
 export class Session {
+  /** Public auth actions never access the account database. */
+  readonly auth: Pick<AuthService, "register">;
   readonly store = createStore<SessionState>(() => ({
     status: "not-ready",
     account: null,
@@ -44,6 +46,12 @@ export class Session {
   ) {
     this.authApi = new AuthApi(api);
     this.authRepository = new AuthRepository(db);
+    this.auth = new AuthService(
+      this.authApi,
+      this.authRepository,
+      network,
+      new AbortController().signal,
+    );
   }
 
   get status(): SessionStatus {

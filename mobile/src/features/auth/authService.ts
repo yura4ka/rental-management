@@ -1,7 +1,12 @@
 import { isOfflineError } from "@/services/api";
 import type { INetwork } from "@/services/network/network";
 import type { IAuthRepository } from "./authRepository";
-import type { GetCurrentAccountResponse, IAuthApi } from "./types";
+import type {
+  GetCurrentAccountResponse,
+  IAuthApi,
+  SignupRequestBody,
+  SignupResponse,
+} from "./types";
 
 export class SessionMismatchError extends Error {
   constructor() {
@@ -17,6 +22,11 @@ export class AuthService {
     private readonly network: INetwork,
     private readonly sessionSignal: AbortSignal,
   ) {}
+
+  register(body: SignupRequestBody, signal?: AbortSignal): Promise<SignupResponse> {
+    this.assertActive();
+    return this.api.signup(body, signal);
+  }
 
   async getCurrentAccount(signal?: AbortSignal): Promise<GetCurrentAccountResponse> {
     this.assertActive();
