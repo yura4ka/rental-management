@@ -4,10 +4,12 @@ import { createAnimatedComponent } from "react-native-reanimated";
 import type { SvgProps } from "react-native-svg";
 import TIconArrowLeftOutline from "@/assets/tabler/outline/arrow-left.svg";
 import TIconArrowRightOutline from "@/assets/tabler/outline/arrow-right.svg";
+import TIconX from "@/assets/tabler/filled/x.svg";
 
 const tabler = {
   TIconArrowLeftOutline,
   TIconArrowRightOutline,
+  TIconX,
 };
 
 const iconsMap = { ...tabler };
