@@ -1,4 +1,4 @@
-import type { TextStyle, ViewStyle } from "react-native";
+import type { TextStyle } from "react-native";
 
 const fontFamily = {
   regular: "Inter-Regular",

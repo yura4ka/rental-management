@@ -1,0 +1,26 @@
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { AuthenticatedStackParamList } from "@/app/navigation/types";
+import { Routes } from "@/app/navigation/routes";
+import { BottomTabsNavigator } from "@/app/navigation/navigators/BottomTabsNavigator";
+import { ProfileScreen, LoadingScreen } from "@/screens";
+import { useHeaderScreenOptions } from "@/app/navigation/common/useHeaderScreenOptions";
+
+const Stack = createNativeStackNavigator<AuthenticatedStackParamList>();
+
+export function AuthenticatedStackNavigator() {
+  const headerOptions = useHeaderScreenOptions();
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name={Routes.Loading} component={LoadingScreen} />
+      <Stack.Screen name={Routes.BottomTabs} component={BottomTabsNavigator} />
+
+      <Stack.Group screenOptions={headerOptions}>
+        <Stack.Screen
+          name={Routes.Profile}
+          component={ProfileScreen}
+          options={{ title: "Profile" }}
+        />
+      </Stack.Group>
+    </Stack.Navigator>
+  );
+}

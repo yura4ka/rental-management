@@ -1,17 +1,24 @@
-import { Text } from "react-native";
+import { useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { StatusBar } from "expo-status-bar";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { createSession, SessionProvider } from "@/services/session";
+import { createQueryClient, QueryProvider } from "@/services/query";
+import { Navigation } from "@/app/navigation";
+
+const queryClient = createQueryClient();
 
 export default function App() {
+  const [session] = useState(() => createSession(process.env.EXPO_PUBLIC_API_URL, queryClient));
+
   return (
-    <GestureHandlerRootView>
-      <SafeAreaProvider>
-        <SafeAreaView>
-          <StatusBar style="auto" />
-          <Text>Open up App.tsx to start working on your app!</Text>
-        </SafeAreaView>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <SessionProvider session={session}>
+      <QueryProvider client={queryClient}>
+        <GestureHandlerRootView>
+          <SafeAreaProvider>
+            <Navigation />
+          </SafeAreaProvider>
+        </GestureHandlerRootView>
+      </QueryProvider>
+    </SessionProvider>
   );
 }
