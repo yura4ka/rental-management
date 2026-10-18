@@ -1,4 +1,7 @@
 import { AuthApi } from "@/features/auth/authApi";
+import { InventoryApi } from "@/features/inventory/inventoryApi";
+import { InventoryRepository } from "@/features/inventory/inventoryRepository";
+import { InventoryService } from "@/features/inventory/inventoryService";
 import { AuthRepository } from "@/features/auth/authRepository";
 import { AuthService } from "@/features/auth/authService";
 import { ApplicantProfileApi } from "@/features/applicantProfile/applicantProfileApi";
@@ -44,6 +47,12 @@ export function createServices({ api, db, network, sessionSignal }: SessionServi
     sessionSignal,
   );
   return {
+    inventory: new InventoryService(
+      new InventoryApi(api),
+      new InventoryRepository(db),
+      network,
+      sessionSignal,
+    ),
     auth,
     operations,
     applicantProfile,
