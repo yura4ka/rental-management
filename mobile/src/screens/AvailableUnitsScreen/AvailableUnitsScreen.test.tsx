@@ -1,6 +1,7 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { View } from "react-native";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { Routes } from "@/app/navigation/routes";
 import { availablePage, availableUnit } from "@/features/inventory/testing/fixtures";
 import { AvailableUnitsScreen } from "./AvailableUnitsScreen";
 
@@ -8,6 +9,11 @@ const mockQuery = jest.fn();
 const mockTypes = jest.fn();
 const mockRefetch = jest.fn();
 const mockFetchNext = jest.fn();
+const mockNavigate = jest.fn();
+
+jest.mock("@/components/layout", () => ({
+  FlatListLayout: jest.requireActual("react-native").FlatList,
+}));
 
 jest.mock("@/features/inventory/hooks", () => ({
   useAvailableUnits: (params: unknown) => mockQuery(params),
@@ -94,10 +100,11 @@ function Harness() {
   const navigation = useMemo(
     () => ({
       setOptions: ({ headerRight }: { headerRight: () => ReactNode }) => setHeader(headerRight()),
+      navigate: mockNavigate,
     }),
     [],
   );
-  const props = { navigation } as Parameters<typeof AvailableUnitsScreen>[0];
+  const props = { navigation } as unknown as Parameters<typeof AvailableUnitsScreen>[0];
   return (
     <View>
       {header}
@@ -126,7 +133,7 @@ describe("AvailableUnitsScreen", () => {
     });
   });
 
-  it("opens one details sheet and Apply only dismisses it", async () => {
+  it("dismisses the details sheet before Apply opens the application form", async () => {
     await render(<Harness />);
     await fireEvent.press(screen.getByText("Garden, 12 Main St"));
     expect(screen.getAllByTestId("bottom-sheet")).toHaveLength(1);
@@ -135,6 +142,9 @@ describe("AvailableUnitsScreen", () => {
     await fireEvent.press(screen.getByLabelText("Apply"));
     await waitFor(() => expect(screen.queryByTestId("bottom-sheet")).toBeNull());
     expect(mockRefetch).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.ApplicationForm, {
+      unitId: availableUnit.unit.id,
+    });
   });
 
   it("sorts through the reusable radio list and marks the header button active", async () => {

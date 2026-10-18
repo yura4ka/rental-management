@@ -138,7 +138,11 @@ export function AvailableUnitsScreen({ navigation }: BottomTabsScreenProps<Route
         }
       />
       {sheet?.kind === "details" && (
-        <AvailableUnitDetailsSheet item={sheet.item} onClose={closeSheet} />
+        <AvailableUnitDetailsSheet
+          item={sheet.item}
+          onClose={closeSheet}
+          onApply={(unitId) => navigation.navigate(Routes.ApplicationForm, { unitId })}
+        />
       )}
       {sheet?.kind === "filters" && (
         <InventoryFiltersSheet filters={filters} onApply={setFilters} onClose={closeSheet} />

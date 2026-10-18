@@ -31,6 +31,8 @@ export type AuthenticatedStackParamList = {
   [Routes.Profile]: undefined;
   [Routes.PropertyDetails]: { propertyId: string };
   [Routes.ApplicationDetails]: { applicationId: string };
+  [Routes.ApplicationForm]:
+    { applicationId: string; unitId?: never } | { unitId: string; applicationId?: never };
   [Routes.BottomTabs]: NavigatorScreenParams<BottomTabsParamList>;
 };
 

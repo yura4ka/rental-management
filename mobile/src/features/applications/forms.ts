@@ -22,6 +22,20 @@ export type ApplicationEditorInput = z.infer<typeof applicationEditorFormSchema>
 export type ApplicationSection = "ApplicantInformation" | "ResidenceHistory";
 export type ApplicationStep = ApplicationSection | "Summary";
 
+/** Keep the complete input type while validating only the visible section. */
+export function applicationStepFormSchema(step: ApplicationStep) {
+  return z.object({
+    applicantInformation:
+      step === "ApplicantInformation"
+        ? applicationInformationFormSchema
+        : z.custom<ApplicationEditorInput["applicantInformation"]>(),
+    residenceHistory:
+      step === "ResidenceHistory"
+        ? applicationEditorFormSchema.shape.residenceHistory
+        : z.custom<ApplicationEditorInput["residenceHistory"]>(),
+  });
+}
+
 export function editorDefaults(
   information?: ApplicantInformationDto,
   residences: ResidenceDto[] = [],

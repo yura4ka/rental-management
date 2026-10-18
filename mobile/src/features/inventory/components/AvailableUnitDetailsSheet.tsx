@@ -11,17 +11,26 @@ import type { AvailableUnitDto } from "../types";
 export function AvailableUnitDetailsSheet({
   item,
   onClose,
+  onApply,
 }: {
   item: AvailableUnitDto;
   onClose: () => void;
+  onApply: (unitId: string) => void;
 }) {
   const sheet = useRef<TrueSheet>(null);
+  const applying = useRef(false);
   useEffect(() => {
     void sheet.current?.present();
   }, []);
   return (
     <BottomSheet.Root ref={sheet}>
-      <BottomSheet.Content scrollable onDidDismiss={onClose}>
+      <BottomSheet.Content
+        scrollable
+        onDidDismiss={() => {
+          onClose();
+          if (applying.current) onApply(item.unit.id);
+        }}
+      >
         <BottomSheet.Header title="Unit details" />
         <ScrollView>
           <BottomSheet.Body>
@@ -37,7 +46,14 @@ export function AvailableUnitDetailsSheet({
           </BottomSheet.Body>
         </ScrollView>
         <BottomSheet.Footer>
-          <Button title="Apply" style={{ flex: 1 }} onPress={() => void sheet.current?.dismiss()} />
+          <Button
+            title="Apply"
+            style={{ flex: 1 }}
+            onPress={() => {
+              applying.current = true;
+              void sheet.current?.dismiss();
+            }}
+          />
         </BottomSheet.Footer>
       </BottomSheet.Content>
     </BottomSheet.Root>

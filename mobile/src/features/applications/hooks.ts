@@ -19,10 +19,11 @@ export function useApplications(params: Omit<GetApplicationsRequestParams, "page
   });
 }
 
-export function useApplication(id: string) {
+export function useApplication(id: string, enabled = true) {
   const session = useSession();
   return useQuery({
     queryKey: applicationKeys.detail(id),
+    enabled,
     queryFn: ({ signal }) => session.getService("applications").getApplication(id, signal),
   });
 }
@@ -32,6 +33,25 @@ export function useApplicationEditor(id: string) {
   return useQuery({
     queryKey: applicationKeys.editor(id),
     queryFn: () => session.getService("applications").getEditor(id),
+  });
+}
+
+export function useInitializeApplicationEditor(params: {
+  applicationId?: string;
+  unitId?: string;
+}) {
+  const session = useSession();
+  return useQuery({
+    queryKey: ["applicationForm", params],
+    queryFn: () => {
+      const service = session.getService("applications");
+      if (params.applicationId) return service.openEditor(params.applicationId);
+      if (params.unitId) return service.startDraft(params.unitId);
+      throw new Error("An application or unit is required.");
+    },
+    staleTime: Infinity,
+    gcTime: 0,
+    retry: false,
   });
 }
 

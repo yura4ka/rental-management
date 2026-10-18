@@ -29,6 +29,7 @@ import { useSessionState } from "@/services/session";
 
 export function ApplicationDetailsScreen({
   route,
+  navigation,
 }: AuthenticatedStackScreenProps<Routes.ApplicationDetails>) {
   const { applicationId } = route.params;
   const query = useApplication(applicationId);
@@ -137,7 +138,13 @@ export function ApplicationDetailsScreen({
         )}
         {(actions.edit || actions.withdraw) && (
           <View style={styles.badges}>
-            {actions.edit && <Button title="Edit" variant="secondary" onPress={() => {}} />}
+            {actions.edit && (
+              <Button
+                title="Edit"
+                variant="secondary"
+                onPress={() => navigation.navigate(Routes.ApplicationForm, { applicationId })}
+              />
+            )}
             {actions.withdraw && (
               <Button title="Delete" onPress={() => setConfirmation(application)} />
             )}

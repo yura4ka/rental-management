@@ -1,12 +1,17 @@
 import { useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
+import { useNavigation } from "@react-navigation/native";
+import { Routes } from "@/app/navigation/routes";
+import type { AuthenticatedStackScreenProps } from "@/app/navigation/types";
 import { ConfirmationBottomSheet } from "@/components/ConfirmationBottomSheet";
 import { Button, Text } from "@/components/ui";
 import { useDiscardApplicationDraft, useLocalApplicationDrafts } from "../hooks";
 import { ApplicationBadge } from "./ApplicationBadge";
 
 export function LocalApplicationDrafts() {
+  const navigation =
+    useNavigation<AuthenticatedStackScreenProps<Routes.ApplicationForm>["navigation"]>();
   const query = useLocalApplicationDrafts();
   const discard = useDiscardApplicationDraft();
   const [selected, setSelected] = useState<string | null>(null);
@@ -34,7 +39,13 @@ export function LocalApplicationDrafts() {
           </Text>
           <Text color="textSecondary">Unit ID: {draft.unitId}</Text>
           <View style={styles.actions}>
-            <Button title="Edit" variant="secondary" onPress={() => {}} />
+            <Button
+              title="Edit"
+              variant="secondary"
+              onPress={() =>
+                navigation.navigate(Routes.ApplicationForm, { applicationId: draft.applicationId })
+              }
+            />
             <Button title="Delete" onPress={() => setSelected(draft.applicationId)} />
           </View>
         </View>
