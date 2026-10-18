@@ -69,6 +69,19 @@ public sealed class InventoryOpenApiTests
         foreach (var name in new[] { "PropertyResponse", "UnitResponse", "UnitTypeResponse" })
             Assert.Equal(JsonSchemaType.String, document.Components!.Schemas![name].Properties!["version"].Type);
         var unit = document.Components!.Schemas!["CreateUnitRequest"];
+        var availableParameters = document.Paths["/api/available-units"].Operations![HttpMethod.Get].Parameters!;
+        Assert.Equal(new[] { "bedrooms", "page", "pageSize", "priceFrom", "priceTo", "sortBy", "sortDirection", "unitTypeIds" },
+            availableParameters.Select(p => p.Name).Order());
+        Assert.All(availableParameters, p => Assert.False(p.Required));
+        var typeIds = availableParameters.Single(p => p.Name == "unitTypeIds");
+        Assert.Equal(JsonSchemaType.Array, typeIds.Schema!.Type & JsonSchemaType.Array);
+        Assert.Equal("uuid", typeIds.Schema.Items!.Format);
+        foreach (var name in new[] { "priceFrom", "priceTo" })
+        {
+            var price = availableParameters.Single(p => p.Name == name).Schema!;
+            Assert.Equal("int64", price.Format);
+            Assert.Equal(JsonSchemaType.Integer, price.Type & JsonSchemaType.Integer);
+        }
         Assert.Equal(JsonSchemaType.Integer | JsonSchemaType.Null, unit.Properties!["monthlyRentCents"].Type);
         Assert.Equal("999999999999", unit.Properties["monthlyRentCents"].Maximum);
         Assert.Equal("^[A-Z0-9_-]{1,20}$", unit.Properties["number"].Pattern);

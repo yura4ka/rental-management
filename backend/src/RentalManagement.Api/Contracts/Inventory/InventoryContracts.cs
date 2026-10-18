@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 using RentalManagement.Api.Contracts.Operations;
 
 namespace RentalManagement.Api.Contracts.Inventory;
@@ -25,4 +26,24 @@ public sealed record UnitTypeResponse(Guid Id, string Code, string Name, bool Is
 public sealed record UnitResponse(Guid Id, Guid PropertyId, Guid UnitTypeId, string Number, int Bedrooms,
     long MonthlyRentCents, DateTimeOffset? ArchivedAt, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, long Version);
 public sealed record AvailableUnitResponse(PropertyResponse Property, UnitResponse Unit, UnitTypeResponse UnitType);
+public sealed record AvailableUnitsQuery
+{
+    [FromQuery(Name = "page")]
+    public int Page { get; init; } = 1;
+    [FromQuery(Name = "pageSize")]
+    public int PageSize { get; init; } = 20;
+    [FromQuery(Name = "unitTypeIds")]
+    public Guid[]? UnitTypeIds { get; init; }
+    [FromQuery(Name = "bedrooms")]
+    public int? Bedrooms { get; init; }
+    // Inclusive monthly rent bounds in integer cents, matching UnitResponse.MonthlyRentCents.
+    [FromQuery(Name = "priceFrom")]
+    public long? PriceFrom { get; init; }
+    [FromQuery(Name = "priceTo")]
+    public long? PriceTo { get; init; }
+    [FromQuery(Name = "sortBy")]
+    public string? SortBy { get; init; }
+    [FromQuery(Name = "sortDirection")]
+    public string SortDirection { get; init; } = "asc";
+}
 public sealed record InventoryPage<T>(IReadOnlyList<T> Items, int TotalCount, int Page, int PageSize);

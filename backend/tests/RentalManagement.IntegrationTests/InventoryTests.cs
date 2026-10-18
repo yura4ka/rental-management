@@ -186,6 +186,85 @@ public sealed class InventoryTests
     }
 
     [SqlServerFact]
+    public async Task AvailableUnitsFilterCentsAndSortBeforeCountingAndPaging()
+    {
+        await using var fixture = new StartupSeedingTests.DatabaseFixture();
+        await fixture.InitializeAsync();
+        await using var app = await StartAsync(fixture);
+        using var manager = await AccountAsync(app, AccountRoles.PropertyManager);
+        using var applicant = await AccountAsync(app, AccountRoles.Applicant);
+        var property = await CreatePropertyAsync(manager);
+        var firstType = new UnitType { Code = "FILTER_FIRST", Name = "Filter first", IsActive = true };
+        var secondType = new UnitType { Code = "FILTER_SECOND", Name = "Filter second", IsActive = false };
+        var epoch = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        var units = new[]
+        {
+            new Unit { PropertyId = property.Id, UnitTypeId = firstType.Id, Number = "A", Bedrooms = 0, MonthlyRent = 100.01m, CreatedAt = epoch },
+            new Unit { PropertyId = property.Id, UnitTypeId = firstType.Id, Number = "B", Bedrooms = 1, MonthlyRent = 200.02m, CreatedAt = epoch.AddDays(2) },
+            new Unit { PropertyId = property.Id, UnitTypeId = secondType.Id, Number = "C", Bedrooms = 1, MonthlyRent = 300.03m, CreatedAt = epoch.AddDays(1) },
+            new Unit { PropertyId = property.Id, UnitTypeId = secondType.Id, Number = "D", Bedrooms = 1, MonthlyRent = 300.03m, CreatedAt = epoch.AddDays(1) },
+            new Unit { PropertyId = property.Id, UnitTypeId = secondType.Id, Number = "E", Bedrooms = 2, MonthlyRent = 400.04m, CreatedAt = epoch.AddDays(3) }
+        };
+        await using (var scope = app.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            db.UnitTypes.AddRange(firstType, secondType);
+            db.Units.AddRange(units);
+            await db.SaveChangesAsync();
+            var days = new[] { 0, 2, 1, 1, 3 };
+            for (var i = 0; i < units.Length; i++)
+            {
+                var id = units[i].Id;
+                var createdAt = epoch.AddDays(days[i]);
+                await db.Units.Where(u => u.Id == id).ExecuteUpdateAsync(set => set.SetProperty(u => u.CreatedAt, createdAt));
+                units[i].CreatedAt = createdAt;
+            }
+        }
+
+        var path = $"/api/available-units?unitTypeIds={firstType.Id}&unitTypeIds={secondType.Id}";
+        static string[] Numbers(JsonElement page) => page.GetProperty("items").EnumerateArray()
+            .Select(r => r.GetProperty("unit").GetProperty("number").GetString()!).ToArray();
+
+        Assert.Equal(new[] { "A", "B", "C", "D", "E" }, Numbers(await PageAsync(applicant, path)));
+        Assert.Equal(new[] { "A", "B" }, Numbers(await PageAsync(applicant, $"/api/available-units?unitTypeIds={firstType.Id}")));
+        Assert.Equal(new[] { "A" }, Numbers(await PageAsync(applicant, path + "&bedrooms=0")));
+        Assert.Equal(new[] { "B", "C", "D" }, Numbers(await PageAsync(applicant, path + "&bedrooms=1&priceFrom=20002&priceTo=30003")));
+        Assert.Equal(new[] { "B" }, Numbers(await PageAsync(applicant, path + "&priceFrom=20002&priceTo=20002")));
+        Assert.Equal(new[] { "A" }, Numbers(await PageAsync(applicant, path + "&priceTo=20001")));
+        Assert.Equal(new[] { "E" }, Numbers(await PageAsync(applicant, path + "&priceFrom=30004")));
+        Assert.Empty(Numbers(await PageAsync(applicant, path + "&priceTo=0")));
+        Assert.Empty(Numbers(await PageAsync(applicant, $"/api/available-units?unitTypeIds={Guid.NewGuid()}")));
+
+        foreach (var sort in new[] { "price", "createdAt" })
+        foreach (var direction in new[] { "asc", "desc" })
+        {
+            var sortedPath = path + $"&sortBy={sort}&sortDirection={direction}";
+            var page = await PageAsync(applicant, sortedPath);
+            var numbers = Numbers(page);
+            var values = numbers.Select(n => sort == "price"
+                ? units.Single(u => u.Number == n).MonthlyRent
+                : units.Single(u => u.Number == n).CreatedAt.Ticks).ToArray();
+            Assert.Equal(direction == "asc" ? values.Order().ToArray() : values.OrderDescending().ToArray(), values);
+            var paged = new List<string>();
+            for (var i = 1; i <= 3; i++)
+            {
+                var slice = await PageAsync(applicant, sortedPath + $"&page={i}&pageSize=2");
+                Assert.Equal(5, slice.GetProperty("totalCount").GetInt32());
+                paged.AddRange(Numbers(slice));
+            }
+            Assert.Equal(numbers, paged);
+        }
+        var filteredPage = await PageAsync(applicant, path + "&bedrooms=1&priceFrom=20002&priceTo=30003&pageSize=1");
+        Assert.Equal(3, filteredPage.GetProperty("totalCount").GetInt32());
+        Assert.Single(Numbers(filteredPage));
+
+        foreach (var query in new[] { "bedrooms=-1", "priceFrom=-1", "priceTo=1000000000000", "priceFrom=2&priceTo=1", "sortBy=unknown", "sortDirection=up" })
+            Assert.Equal(HttpStatusCode.UnprocessableEntity, (await applicant.GetAsync(path + "&" + query)).StatusCode);
+        foreach (var query in new[] { "priceFrom=1.5", "bedrooms=1.5", "unitTypeIds=invalid" })
+            Assert.Equal(HttpStatusCode.BadRequest, (await applicant.GetAsync("/api/available-units?" + query)).StatusCode);
+    }
+
+    [SqlServerFact]
     public async Task ConcurrentWritesSerializeAndArchiveIsAtomic()
     {
         await using var fixture = new StartupSeedingTests.DatabaseFixture();

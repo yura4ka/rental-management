@@ -18,6 +18,13 @@ export type AvailableUnitDto = {
 export type GetAvailableUnitsRequestParams = {
   page?: number;
   pageSize?: number;
+  unitTypeIds?: string[];
+  bedrooms?: number;
+  /** Inclusive monthly rent bounds in integer cents, matching monthlyRentCents. */
+  priceFrom?: number;
+  priceTo?: number;
+  sortBy?: "price" | "createdAt";
+  sortDirection?: "asc" | "desc";
 };
 
 export type GetAvailableUnitsResponse = InventoryPageDto<AvailableUnitDto>;
