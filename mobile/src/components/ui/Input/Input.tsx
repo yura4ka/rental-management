@@ -1,10 +1,10 @@
-import { useState, type ComponentProps } from "react";
+import { useState, type ComponentPropsWithRef } from "react";
 import { TextInput } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
 import { InputBase, type InputBaseProps } from "./InputBase";
 
 export type InputProps = Omit<InputBaseProps, "children" | "isFocused" | "hasValue"> &
-  Omit<ComponentProps<typeof TextInput>, "children">;
+  Omit<ComponentPropsWithRef<typeof TextInput>, "children">;
 
 export function Input({
   label,

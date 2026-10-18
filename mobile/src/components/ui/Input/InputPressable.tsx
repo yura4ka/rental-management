@@ -51,6 +51,7 @@ export function InputPressable({
         containerStyle,
       }}
       hasValue={!!value?.length}
+      isFocused={isFocused}
     >
       {({ textStyles, viewStyles }) => (
         <TouchableOpacity
@@ -58,6 +59,8 @@ export function InputPressable({
           accessibilityRole="button"
           {...props}
           disabled={disabled}
+          onFocus={onFocus}
+          onBlur={onBlur}
           accessibilityLabel={accessibilityLabel}
           accessibilityHint={accessibilityHint}
           accessibilityValue={{ text: value, ...props.accessibilityValue }}
