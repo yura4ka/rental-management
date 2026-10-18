@@ -2,8 +2,12 @@
 import type { ComponentType } from "react";
 import { createAnimatedComponent } from "react-native-reanimated";
 import type { SvgProps } from "react-native-svg";
+import TIconAdjustmentsHorizontalOutline from "@/assets/tabler/outline/adjustments-horizontal.svg";
 import TIconArrowLeftOutline from "@/assets/tabler/outline/arrow-left.svg";
 import TIconArrowRightOutline from "@/assets/tabler/outline/arrow-right.svg";
+import TIconArrowsSortOutline from "@/assets/tabler/outline/arrows-sort.svg";
+import TIconBedOutline from "@/assets/tabler/outline/bed.svg";
+import TIconBuildingOutline from "@/assets/tabler/outline/building.svg";
 import TIconChevronLeftOutline from "@/assets/tabler/outline/chevron-left.svg";
 import TIconHomeOutline from "@/assets/tabler/outline/home.svg";
 import TIconPencilOutline from "@/assets/tabler/outline/pencil.svg";
@@ -11,8 +15,12 @@ import TIconPlus from "@/assets/tabler/filled/plus.svg";
 import TIconX from "@/assets/tabler/filled/x.svg";
 
 const tabler = {
+  TIconAdjustmentsHorizontalOutline,
   TIconArrowLeftOutline,
   TIconArrowRightOutline,
+  TIconArrowsSortOutline,
+  TIconBedOutline,
+  TIconBuildingOutline,
   TIconChevronLeftOutline,
   TIconHomeOutline,
   TIconPencilOutline,
