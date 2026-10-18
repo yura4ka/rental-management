@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import { StyleSheet } from "react-native-unistyles";
 import { Text } from "@/components/ui";
 import { Icon } from "@/components";
 
@@ -16,12 +16,11 @@ const HeaderTitle = ({ children }: { children: React.ReactNode }) => {
 };
 
 export const useHeaderScreenOptions = () => {
-  const { theme } = useUnistyles();
-
   return useMemo(
     () =>
       ({
         headerShown: true,
+        headerShadowVisible: false,
         headerBackButtonDisplayMode: "minimal",
         headerTitle: HeaderTitle,
         headerTitleAlign: "center",
@@ -29,16 +28,15 @@ export const useHeaderScreenOptions = () => {
         headerRightContainerStyle: { right: 16 },
         headerPressOpacity: 0.8,
         headerStyle: {
-          backgroundColor: theme.colors.background,
+          backgroundColor: "transparent",
           shadowOffset: { width: 0, height: 0 },
           elevation: 0,
           shadowColor: "transparent",
-          borderBottomWidth: StyleSheet.hairlineWidth,
-          borderBottomColor: theme.colors.border,
+          borderBottomWidth: 0,
         },
         headerBackImage: HeaderIcon,
       }) as const,
-    [theme],
+    [],
   );
 };
 

@@ -173,9 +173,7 @@ focused input into view.** No additional keyboard-avoidance setup is needed.
 
 ### Outside a bottom sheet
 
-Use **`KeyboardAwareScrollView` from `react-native-keyboard-controller`** for
-scrollable forms outside sheets, instead of combining a plain `ScrollView`
-with `KeyboardAvoidingView` or implementing manual avoidance.
+Use **`KeyboardAwareScrollView` or `KeyboardAwareView` with `ScrollLayout` from `react-native-keyboard-controller`** for scrollable forms outside sheets.
 
 ```tsx
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ActivityIndicator, ScrollView, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
 import { Card } from "@/components/Card";
 import { Button, Text } from "@/components/ui";
@@ -10,6 +10,7 @@ import { compareResidences } from "@/features/applicantProfile/forms/utils";
 import { useApplicantProfile } from "@/features/applicantProfile/hooks";
 import type { GetApplicantProfileResponse } from "@/features/applicantProfile/types";
 import { useGetAccount } from "@/features/auth/hooks";
+import { ScrollViewLayout } from "@/components/layout";
 
 type Editor = { section: "information" | "residences"; profile: GetApplicantProfileResponse };
 
@@ -48,7 +49,7 @@ export function ProfileScreen() {
   const information = data.applicantInformation;
   return (
     <>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollViewLayout contentContainerStyle={styles.container}>
         {profile.isError && (
           <View style={styles.value}>
             <Text color="warning.foreground">
@@ -119,7 +120,7 @@ export function ProfileScreen() {
             )}
           </Card.Body>
         </Card.Root>
-      </ScrollView>
+      </ScrollViewLayout>
       {editor?.section === "information" && (
         <ProfileInformationEditor profile={editor.profile} onClose={() => setEditor(null)} />
       )}
@@ -131,9 +132,26 @@ export function ProfileScreen() {
 }
 
 const styles = StyleSheet.create((theme) => ({
-  content: { padding: theme.spacing.lg, gap: theme.spacing.lg, paddingBottom: theme.spacing.xxxl },
-  cardHeader: { flexDirection: "row", alignItems: "center", gap: theme.spacing.sm },
-  title: { flex: 1 },
-  value: { gap: theme.spacing.xs },
-  state: { flex: 1, justifyContent: "center", padding: theme.spacing.lg, gap: theme.spacing.md },
+  container: {
+    flexGrow: 1,
+    padding: theme.spacing.lg,
+    gap: theme.spacing.lg,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: theme.spacing.sm,
+  },
+  title: {
+    flex: 1,
+  },
+  value: {
+    gap: theme.spacing.xs,
+  },
+  state: {
+    flex: 1,
+    justifyContent: "center",
+    padding: theme.spacing.lg,
+    gap: theme.spacing.md,
+  },
 }));
