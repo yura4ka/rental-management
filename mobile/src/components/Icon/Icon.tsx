@@ -13,7 +13,7 @@ import type { ColorVariantKey } from "@/app/theme";
 type IconProps = {
   name: IconName;
   size?: number | null;
-  color?: ColorVariantKey | SharedValue<string>;
+  color?: ColorVariantKey | (string & {}) | SharedValue<string>;
   transitionDuration?: number;
 };
 
@@ -22,7 +22,9 @@ export function Icon({ name, size = 24, color = "text", transitionDuration = 0 }
 
   const animatedColor = useDerivedValue(() => {
     const colorValue =
-      typeof color === "string" ? theme.value.colorVariants[color].color : color.value;
+      typeof color === "string"
+        ? (theme.value.colorVariants[color as ColorVariantKey]?.color ?? color)
+        : color.value;
 
     return transitionDuration === 0
       ? colorValue

@@ -198,7 +198,7 @@ const styles = StyleSheet.create((theme) => ({
     outlineColor: theme.colors.semantic.danger.foreground,
   },
   row: (size: InputSize) => {
-    const sizing = theme.sizing.inputSizes[size];
+    const sizing = theme.sizing.touchableSizes[size];
     return {
       flexDirection: "row",
       alignItems: "stretch",
@@ -208,7 +208,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   content: (size: InputSize, hasLeft: boolean, hasRight: boolean) => ({
     flex: 1,
-    minHeight: theme.sizing.inputSizes[size].minHeight,
+    minHeight: theme.sizing.touchableSizes[size].minHeight,
     justifyContent: "center",
     paddingVertical: theme.spacing.md,
     paddingLeft: hasLeft ? theme.spacing.sm : 0,
@@ -238,7 +238,7 @@ const styles = StyleSheet.create((theme) => ({
     },
   },
   labelContainer: (size: InputSize, hasLeft: boolean) => {
-    const sizing = theme.sizing.inputSizes[size];
+    const sizing = theme.sizing.touchableSizes[size];
     const left = hasLeft
       ? sizing.paddingHorizontal + theme.sizing.icon + theme.spacing.sm
       : sizing.paddingHorizontal;
@@ -252,7 +252,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   labelContainerFloating: (size: InputSize) => ({
     top: -18 / 2,
-    left: theme.sizing.inputSizes[size].paddingHorizontal - theme.spacing.xs,
+    left: theme.sizing.touchableSizes[size].paddingHorizontal - theme.spacing.xs,
   }),
   labelContainerDisabled: {
     backgroundColor: theme.colors.disabledBackground,
@@ -278,6 +278,6 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.semantic.danger.foreground,
   },
   description: (size: InputSize) => ({
-    paddingHorizontal: theme.sizing.inputSizes[size].paddingHorizontal,
+    paddingHorizontal: theme.sizing.touchableSizes[size].paddingHorizontal,
   }),
 }));
