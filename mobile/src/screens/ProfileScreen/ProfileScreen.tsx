@@ -52,7 +52,7 @@ export function ProfileScreen() {
           </View>
         )}
         <Card.Root>
-          <Card.Header>
+          <Card.Header border={true}>
             <View style={styles.cardHeader}>
               <Text variant="cardTitle" style={styles.title}>
                 Profile
@@ -90,7 +90,7 @@ export function ProfileScreen() {
           </Card.Body>
         </Card.Root>
         <Card.Root>
-          <Card.Header>
+          <Card.Header border={true}>
             <View style={styles.cardHeader}>
               <Text variant="cardTitle" style={styles.title}>
                 Past residences

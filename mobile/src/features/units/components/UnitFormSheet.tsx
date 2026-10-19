@@ -3,7 +3,7 @@ import { ScrollView, View } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
 import { TrueSheet } from "@lodev09/react-native-true-sheet";
 import { uuidv7 } from "uuidv7";
-import { toast } from "sonner-native";
+import { toast } from "@/app/toast";
 import { useAppForm, useFormInputs } from "@/app/form";
 import { BottomSheet } from "@/components/BottomSheet";
 import { ConfirmationBottomSheet } from "@/components/ConfirmationBottomSheet";

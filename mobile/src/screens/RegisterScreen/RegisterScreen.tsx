@@ -25,7 +25,7 @@ export function RegisterScreen({ navigation }: UnauthenticatedStackScreenProps<R
   const isPending = register.isPending || login.isPending;
   const form = useAppForm({
     defaultValues,
-    validators: { onChange: registerSchema, onSubmit: registerSchema },
+    validators: { onBlur: registerSchema },
     onSubmit: async ({ value, formApi }) => {
       const input = { ...value, email: value.email.trim() };
       try {
@@ -53,6 +53,7 @@ export function RegisterScreen({ navigation }: UnauthenticatedStackScreenProps<R
           {(field) => (
             <field.FormInput
               label="Email"
+              isRequired={true}
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
@@ -68,6 +69,7 @@ export function RegisterScreen({ navigation }: UnauthenticatedStackScreenProps<R
           {(field) => (
             <field.FormInput
               label="Password"
+              isRequired={true}
               description="12–128 characters"
               secureTextEntry
               autoCapitalize="none"
@@ -82,7 +84,7 @@ export function RegisterScreen({ navigation }: UnauthenticatedStackScreenProps<R
         <form.AppField name="role">
           {(field) => (
             <View style={styles.role}>
-              <Text variant="label">Role</Text>
+              <Text variant="heading">Role</Text>
               <View
                 accessibilityRole="radiogroup"
                 accessibilityLabel="Account role"
@@ -115,19 +117,30 @@ export function RegisterScreen({ navigation }: UnauthenticatedStackScreenProps<R
             </View>
           )}
         </form.AppField>
-        <form.SubmitButton title={registered ? "Retry login" : "Register"} />
-        <Button
-          title="Already have an account? Log in"
-          variant="textPrimary"
-          disabled={isPending}
-          onPress={() => navigation.navigate(Routes.Login)}
-        />
+        <View style={styles.buttons}>
+          <form.SubmitButton title={registered ? "Retry login" : "Register"} />
+          <Button
+            title="Already have an account? Log in"
+            variant="textPrimary"
+            disabled={isPending}
+            onPress={() => navigation.navigate(Routes.Login)}
+          />
+        </View>
       </form.AppForm>
     </AuthCard>
   );
 }
 
 const styles = StyleSheet.create((theme) => ({
-  role: { gap: theme.spacing.sm },
-  chips: { flexDirection: "row", gap: theme.spacing.sm },
+  role: {
+    gap: theme.spacing.sm,
+  },
+  chips: {
+    flexDirection: "row",
+    gap: theme.spacing.sm,
+  },
+  buttons: {
+    paddingTop: theme.spacing.lg,
+    gap: theme.spacing.sm,
+  },
 }));

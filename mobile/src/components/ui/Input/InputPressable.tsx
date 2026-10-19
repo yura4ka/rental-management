@@ -20,6 +20,7 @@ export function InputPressable({
   iconRight,
   onIconLeftPress,
   onIconRightPress,
+  isRequired,
   iconLeftAccessibilityLabel,
   iconRightAccessibilityLabel,
   containerStyle,
@@ -49,6 +50,7 @@ export function InputPressable({
         iconLeftAccessibilityLabel,
         iconRightAccessibilityLabel,
         containerStyle,
+        isRequired,
       }}
       hasValue={!!value?.length}
       isFocused={isFocused}

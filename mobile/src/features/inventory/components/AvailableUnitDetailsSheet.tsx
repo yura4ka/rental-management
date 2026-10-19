@@ -31,7 +31,7 @@ export function AvailableUnitDetailsSheet({
           if (applying.current) onApply(item.unit.id);
         }}
       >
-        <BottomSheet.Header title="Unit details" />
+        <BottomSheet.Header title="Unit details" border={true} />
         <ScrollView>
           <BottomSheet.Body>
             <LabelValue

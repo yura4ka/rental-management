@@ -36,10 +36,10 @@ export function InventoryFiltersSheet({
     <form.AppForm>
       <BottomSheet.Root ref={sheet}>
         <BottomSheet.Content scrollable onDidDismiss={onClose}>
-          <BottomSheet.Header title="Filters" />
+          <BottomSheet.Header title="Filters" border={true} />
           <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
             <BottomSheet.Body>
-              <Text fontFamily="semibold">Unit types</Text>
+              <Text variant="heading">Unit types</Text>
               {types.isPending && <Text color="textSecondary">Loading unit types…</Text>}
               {types.isError && (
                 <>
@@ -88,7 +88,7 @@ export function InventoryFiltersSheet({
                   </ScrollView>
                 )}
               </form.AppField>
-              <Text fontFamily="semibold">Number of bedrooms</Text>
+              <Text variant="heading">Number of bedrooms</Text>
               <form.AppField name="bedrooms">
                 {(field) => (
                   <View style={styles.row}>
@@ -119,6 +119,7 @@ export function InventoryFiltersSheet({
                   </View>
                 )}
               </form.AppField>
+              <Text variant="heading">Price range</Text>
               <View style={styles.row}>
                 <View style={styles.input}>
                   <form.AppField name="priceFrom">
@@ -155,7 +156,7 @@ export function InventoryFiltersSheet({
               variant="textPrimary"
               onPress={() => form.reset(defaultInventoryFilters)}
             />
-            <form.SubmitButton title="Show units" style={styles.input} />
+            <form.SubmitButton title="Show units" />
           </BottomSheet.Footer>
         </BottomSheet.Content>
       </BottomSheet.Root>
@@ -167,7 +168,8 @@ const styles = StyleSheet.create((theme) => ({
   row: {
     flexDirection: "row",
     alignItems: "center",
-    gap: theme.spacing.sm,
+    gap: theme.spacing.md,
+    paddingBottom: theme.spacing.sm,
   },
   chips: {
     flexDirection: "row",

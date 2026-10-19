@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { View } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
-import { toast } from "sonner-native";
+import { toast } from "@/app/toast";
 import { StyledActivityIndicator } from "@/components";
 import { Routes } from "@/app/navigation/routes";
 import type { AuthenticatedStackScreenProps } from "@/app/navigation/types";

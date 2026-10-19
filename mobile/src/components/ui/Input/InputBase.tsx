@@ -39,6 +39,7 @@ export type InputBaseProps = {
   iconRightAccessibilityLabel?: string;
   isFocused?: boolean;
   hasValue?: boolean;
+  isRequired?: boolean;
   containerStyle?: StyleProp<ViewStyle>;
   children: (props: InputBaseChildrenProps) => ReactNode;
 };
@@ -59,6 +60,7 @@ export function InputBase({
   iconRightAccessibilityLabel,
   isFocused = false,
   hasValue = false,
+  isRequired = false,
   containerStyle,
   children,
 }: InputBaseProps) {
@@ -157,7 +159,7 @@ export function InputBase({
                 },
               ]}
             >
-              {label}
+              {label} {isRequired && <Animated.Text style={styles.labelError}> *</Animated.Text>}
             </Animated.Text>
           </Animated.View>
         )}

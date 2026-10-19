@@ -74,9 +74,9 @@ export function Content({
         height * MAX_HEIGHT_RATIO,
       )}
       header={header}
-      footer={footer}
     >
       {content}
+      {footer}
     </TrueSheet>
   );
 }

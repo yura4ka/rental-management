@@ -1,10 +1,10 @@
 import type { TextStyle } from "react-native";
 
 const fontFamily = {
-  regular: "Inter-Regular",
-  medium: "Inter-Medium",
-  semibold: "Inter-SemiBold",
-  bold: "Inter-Bold",
+  regular: "Manrope-Regular",
+  medium: "Manrope-Medium",
+  semibold: "Manrope-SemiBold",
+  bold: "Manrope-Bold",
 } as const;
 
 const fontFamilyVariants = Object.fromEntries(
@@ -23,16 +23,20 @@ const fontSize = {
 
 const typography = {
   screenTitle: {
-    fontFamily: fontFamily.semibold,
+    fontFamily: fontFamily.bold,
     ...fontSize["3xl"],
   },
   sectionHeading: {
     fontFamily: fontFamily.semibold,
     ...fontSize.xl,
   },
-  cardTitle: {
+  heading: {
     fontFamily: fontFamily.semibold,
     ...fontSize.lg,
+  },
+  cardTitle: {
+    fontFamily: fontFamily.semibold,
+    ...fontSize.xl,
   },
   body: {
     fontFamily: fontFamily.regular,

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ScrollView } from "react-native";
 import { TrueSheet } from "@lodev09/react-native-true-sheet";
 import { uuidv7 } from "uuidv7";
-import { toast } from "sonner-native";
+import { toast } from "@/app/toast";
 import { useAppForm, useFormInputs } from "@/app/form";
 import { BottomSheet } from "@/components/BottomSheet";
 import { Button, Text } from "@/components/ui";

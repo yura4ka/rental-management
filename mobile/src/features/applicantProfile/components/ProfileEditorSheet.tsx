@@ -20,11 +20,11 @@ export function ProfileEditorSheet({ sheetRef, title, busy, onClose, children, f
   return (
     <BottomSheet.Root ref={sheetRef}>
       <BottomSheet.Content scrollable dismissible={!busy} draggable={!busy} onDidDismiss={onClose}>
-        <BottomSheet.Header title={title} noCloseButton={busy} />
+        <BottomSheet.Header title={title} noCloseButton={busy} border={true} />
         <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
           <BottomSheet.Body>{children}</BottomSheet.Body>
         </ScrollView>
-        <BottomSheet.Footer border>{footer}</BottomSheet.Footer>
+        <BottomSheet.Footer>{footer}</BottomSheet.Footer>
       </BottomSheet.Content>
     </BottomSheet.Root>
   );

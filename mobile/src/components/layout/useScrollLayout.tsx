@@ -51,7 +51,6 @@ export function useScrollLayout(offset: SharedValue<number>, headerTransitionDis
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerTransparent: true,
       headerBackground: () => <ScrollHeaderBackground offset={offset} distance={distance} />,
     });
 

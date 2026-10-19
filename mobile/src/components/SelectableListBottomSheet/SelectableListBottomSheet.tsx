@@ -31,7 +31,7 @@ export function SelectableListBottomSheet<Value extends string | number>({
   return (
     <BottomSheet.Root ref={sheet}>
       <BottomSheet.Content scrollable onDidDismiss={onClose}>
-        <BottomSheet.Header title={title} />
+        <BottomSheet.Header title={title} border={true} />
         <ScrollView>
           <BottomSheet.Body>
             <SelectableList items={items} value={selectedValue} onChange={setSelectedValue} />

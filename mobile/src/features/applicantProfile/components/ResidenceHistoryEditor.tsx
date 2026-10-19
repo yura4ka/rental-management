@@ -33,7 +33,7 @@ export function ResidenceHistoryEditor({ profile, onClose }: Props) {
   };
   const form = useAppForm({
     defaultValues,
-    validators: { onChange: residencesFormSchema, onSubmit: residencesFormSchema },
+    validators: { onBlur: residencesFormSchema },
     onSubmit: async ({ value, formApi }) => {
       try {
         const valid = residencesFormSchema.parse(value);
@@ -128,13 +128,19 @@ export function ResidenceHistoryEditor({ profile, onClose }: Props) {
                   />
                   <form.AppField name={`residenceHistory[${index}].landlordName`}>
                     {(field) => (
-                      <field.FormInput label="Landlord name" maxLength={100} editable={!disabled} />
+                      <field.FormInput
+                        label="Landlord name"
+                        isRequired={true}
+                        maxLength={100}
+                        editable={!disabled}
+                      />
                     )}
                   </form.AppField>
                   <form.AppField name={`residenceHistory[${index}].landlordPhone`}>
                     {(field) => (
                       <field.FormInput
                         label="Landlord phone"
+                        isRequired={true}
                         description="NNN-NNN-NNNN"
                         keyboardType="phone-pad"
                         maxLength={50}
@@ -148,6 +154,7 @@ export function ResidenceHistoryEditor({ profile, onClose }: Props) {
                         <field.FormInputPressable
                           label={name === "moveInDate" ? "Move-in date" : "Move-out date"}
                           formatValue={formatCalendarDate}
+                          isRequired={true}
                           disabled={disabled}
                           onPress={() =>
                             datePicker.current?.open({

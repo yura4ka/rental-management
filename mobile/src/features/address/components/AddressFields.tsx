@@ -13,7 +13,8 @@ export const AddressFields = withFieldGroup({
         <group.AppField name="streetAddress">
           {(field) => (
             <field.FormInput
-              label={streetRequired ? "Street address (required)" : "Street address"}
+              label={"Street address"}
+              isRequired={streetRequired}
               autoComplete="street-address"
               maxLength={200}
               editable={!disabled}

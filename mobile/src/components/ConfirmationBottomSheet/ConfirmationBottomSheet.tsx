@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { TrueSheet } from "@lodev09/react-native-true-sheet";
-import { toast } from "sonner-native";
+import { toast } from "@/app/toast";
 import { BottomSheet } from "@/components/BottomSheet";
 import { Button, Text } from "@/components/ui";
 import type { OperationResult } from "@/features/operations/types";

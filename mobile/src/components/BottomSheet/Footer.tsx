@@ -10,11 +10,10 @@ export function Footer({ border = false, style, ...props }: BottomSheetFooterPro
   return <View {...props} style={[styles.footer, border && styles.borderTop, style]} />;
 }
 
-const styles = StyleSheet.create((theme) => ({
+const styles = StyleSheet.create((theme, miniRuntime) => ({
   footer: {
     padding: theme.spacing.lg,
-    flexDirection: "row",
-    alignItems: "center",
+    paddingBottom: miniRuntime.insets.bottom,
     gap: theme.spacing.sm,
   },
   borderTop: {

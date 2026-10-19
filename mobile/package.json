@@ -2,6 +2,17 @@
   "name": "rental-management",
   "version": "1.0.0",
   "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "start:clear": "expo start --clear",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "lint": "expo lint",
+    "test": "jest --watchAll",
+    "addIcon": "node scripts/addIcons/index.mjs",
+    "addIcons": "node scripts/addIcons/index.mjs",
+    "test:icons": "node --test scripts/addIcons/index.test.mjs"
+  },
   "dependencies": {
     "@lodev09/react-native-true-sheet": "^3.11.18",
     "@react-native-community/netinfo": "12.0.1",
@@ -51,17 +62,6 @@
     "react-native-svg-transformer": "^1.5.3",
     "tar": "^7.5.22",
     "typescript": "~6.0.3"
-  },
-  "scripts": {
-    "addItem": "node scripts/addIcons/index.mjs",
-    "addItems": "node scripts/addIcons/index.mjs",
-    "test:icons": "node --test scripts/addIcons/index.test.mjs",
-    "start": "expo start",
-    "start:clear": "expo start --clear",
-    "android": "expo run:android",
-    "ios": "expo run:ios",
-    "lint": "expo lint",
-    "test": "jest --watchAll"
   },
   "jest": {
     "preset": "jest-expo",

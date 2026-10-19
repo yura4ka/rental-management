@@ -2,7 +2,7 @@ import { View } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
 import { Text } from "@/components/ui";
 
-export type ToastProps = { message: string; variant: "success" | "error" };
+export type ToastProps = { message: string; variant: "info" | "success" | "error" };
 
 export function Toast({ message, variant }: ToastProps) {
   styles.useVariants({ variant });
@@ -13,15 +13,20 @@ export function Toast({ message, variant }: ToastProps) {
   );
 }
 
-const styles = StyleSheet.create((theme) => ({
+const styles = StyleSheet.create((theme, miniRuntime) => ({
   container: {
-    width: "100%",
+    width: miniRuntime.screen.width - theme.spacing.lg * 2,
     padding: theme.spacing.lg,
+    marginHorizontal: "auto",
     borderRadius: theme.radius.control,
     borderWidth: theme.borderWidth.default,
     boxShadow: theme.shadows.raised,
     variants: {
       variant: {
+        info: {
+          backgroundColor: theme.colors.semantic.info.background,
+          borderColor: theme.colors.semantic.info.border,
+        },
         success: {
           backgroundColor: theme.colors.semantic.success.background,
           borderColor: theme.colors.semantic.success.border,
@@ -37,6 +42,7 @@ const styles = StyleSheet.create((theme) => ({
     ...theme.typography.body,
     variants: {
       variant: {
+        info: { color: theme.colors.semantic.info.foreground },
         success: { color: theme.colors.semantic.success.foreground },
         error: { color: theme.colors.semantic.danger.foreground },
       },

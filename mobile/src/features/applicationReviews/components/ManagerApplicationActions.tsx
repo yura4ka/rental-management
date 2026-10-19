@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { View } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
-import { toast } from "sonner-native";
+import { toast } from "@/app/toast";
 import { Button, Text } from "@/components/ui";
 import {
   availableApplicationActions,

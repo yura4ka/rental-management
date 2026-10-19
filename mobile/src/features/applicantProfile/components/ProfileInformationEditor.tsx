@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { StyleSheet } from "react-native-unistyles";
 import { TrueSheet } from "@lodev09/react-native-true-sheet";
 import { useAppForm, useFormInputs } from "@/app/form";
 import { toast } from "@/app/toast";
@@ -19,7 +20,7 @@ export function ProfileInformationEditor({ profile, onClose }: Props) {
   const [pending, setPending] = useState(false);
   const form = useAppForm({
     defaultValues: toProfileFormInput(profile.applicantInformation),
-    validators: { onChange: profileFormSchema, onSubmit: profileFormSchema },
+    validators: { onSubmit: profileFormSchema },
     onSubmit: async ({ value, formApi }) => {
       try {
         const result = await mutation.mutateAsync({
@@ -88,6 +89,7 @@ export function ProfileInformationEditor({ profile, onClose }: Props) {
             Pending sync — saved on this device, not yet confirmed by the server.
           </Text>
         )}
+        <Text variant="heading">Contact information</Text>
         <form.AppField name="name">
           {(field) => (
             <field.FormInput
@@ -128,9 +130,17 @@ export function ProfileInformationEditor({ profile, onClose }: Props) {
             />
           )}
         </form.AppField>
-        <Text variant="sectionHeading">Current address</Text>
+        <Text variant="heading" style={styles.title}>
+          Current address
+        </Text>
         <AddressFields form={form} fields="currentAddress" disabled={disabled} />
       </ProfileEditorSheet>
     </form.AppForm>
   );
 }
+
+const styles = StyleSheet.create((theme) => ({
+  title: {
+    paddingTop: theme.spacing.sm,
+  },
+}));

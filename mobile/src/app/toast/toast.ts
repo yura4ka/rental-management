@@ -3,6 +3,11 @@ import { toast as sonnerToast } from "sonner-native";
 import { Toast } from "@/components/Toast";
 
 export const toast = {
+  info: (message: string) =>
+    sonnerToast.custom(createElement(Toast, { message, variant: "info" }), {
+      duration: 4000,
+      unstyled: true,
+    }),
   success: (message: string) =>
     sonnerToast.custom(createElement(Toast, { message, variant: "success" }), {
       duration: 4000,

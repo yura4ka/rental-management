@@ -1,3 +1,5 @@
+import { StyleSheet } from "react-native-unistyles";
+import { View } from "react-native";
 import { useAppForm, useFormInputs } from "@/app/form";
 import { Routes } from "@/app/navigation/routes";
 import type { UnauthenticatedStackScreenProps } from "@/app/navigation/types";
@@ -14,7 +16,7 @@ export function LoginScreen({ navigation }: UnauthenticatedStackScreenProps<Rout
   const login = useLogin();
   const form = useAppForm({
     defaultValues,
-    validators: { onChange: loginSchema, onSubmit: loginSchema },
+    validators: { onBlur: loginSchema },
     onSubmit: async ({ value, formApi }) => {
       try {
         await login.mutateAsync({ ...value, email: value.email.trim() });
@@ -58,14 +60,23 @@ export function LoginScreen({ navigation }: UnauthenticatedStackScreenProps<Rout
             />
           )}
         </form.AppField>
-        <form.SubmitButton title="Log in" />
-        <Button
-          title="Create an account"
-          variant="textPrimary"
-          disabled={login.isPending}
-          onPress={() => navigation.navigate(Routes.Register)}
-        />
+        <View style={styles.buttons}>
+          <form.SubmitButton title="Log in" />
+          <Button
+            title="Create an account"
+            variant="textPrimary"
+            disabled={login.isPending}
+            onPress={() => navigation.navigate(Routes.Register)}
+          />
+        </View>
       </form.AppForm>
     </AuthCard>
   );
 }
+
+const styles = StyleSheet.create((theme) => ({
+  buttons: {
+    paddingTop: theme.spacing.lg,
+    gap: theme.spacing.sm,
+  },
+}));

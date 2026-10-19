@@ -18,6 +18,7 @@ export function Input({
   iconRight,
   onIconLeftPress,
   onIconRightPress,
+  isRequired,
   iconLeftAccessibilityLabel,
   iconRightAccessibilityLabel,
   containerStyle,
@@ -55,6 +56,7 @@ export function Input({
         iconRightAccessibilityLabel,
         containerStyle,
         hasValue,
+        isRequired,
       }}
       isFocused={isFocused && !disabled}
     >

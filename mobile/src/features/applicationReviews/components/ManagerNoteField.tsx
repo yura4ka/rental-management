@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
-import { toast } from "sonner-native";
+import { toast } from "@/app/toast";
 import { useAppForm } from "@/app/form";
 import { Button, Text } from "@/components/ui";
 import { managerNoteFormSchema } from "@/features/applications/presentation";

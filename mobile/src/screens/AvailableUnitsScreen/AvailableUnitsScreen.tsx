@@ -1,5 +1,5 @@
 import { useCallback, useLayoutEffect, useMemo, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { View } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
 import { Routes } from "@/app/navigation/routes";
 import type { BottomTabsScreenProps } from "@/app/navigation/types";
@@ -20,6 +20,7 @@ import {
 import { useAvailableUnits } from "@/features/inventory/hooks";
 import type { AvailableUnitDto } from "@/features/inventory/types";
 import { FlatListLayout } from "@/components/layout";
+import { StyledActivityIndicator } from "@/components";
 
 type Sheet = { kind: "filters" } | { kind: "sort" } | { kind: "details"; item: AvailableUnitDto };
 
@@ -32,8 +33,19 @@ export function AvailableUnitsScreen({ navigation }: BottomTabsScreenProps<Route
     () => ({ ...toInventoryParams(filters), ...toSortParams(sort) }),
     [filters, sort],
   );
-  const query = useAvailableUnits(params);
-  const pages = query.data?.pages;
+  const {
+    data,
+    isLoading,
+    isFetching,
+    isFetchingNextPage,
+    refetch,
+    fetchNextPage,
+    isError,
+    isRefetching,
+    hasNextPage,
+    isFetchNextPageError,
+  } = useAvailableUnits(params);
+  const pages = data?.pages;
   const items = useMemo(
     () => [
       ...new Map(
@@ -88,11 +100,11 @@ export function AvailableUnitsScreen({ navigation }: BottomTabsScreenProps<Route
             }}
           />
         )}
-        refreshing={query.isRefetching && !query.isFetchingNextPage}
-        onRefresh={() => void query.refetch()}
+        refreshing={isRefetching && !isFetchingNextPage}
+        onRefresh={() => void refetch()}
         onEndReachedThreshold={0.4}
         onEndReached={() => {
-          if (query.hasNextPage && !query.isFetching && !query.isError) void query.fetchNextPage();
+          if (hasNextPage && !isFetching && !isError) void fetchNextPage();
         }}
         ListHeaderComponent={
           <>
@@ -102,7 +114,7 @@ export function AvailableUnitsScreen({ navigation }: BottomTabsScreenProps<Route
                 may have changed.
               </Text>
             )}
-            {(query.isError || fallback) && (
+            {(isError || fallback) && (
               <View style={styles.feedback}>
                 <Text>
                   {items.length
@@ -112,19 +124,17 @@ export function AvailableUnitsScreen({ navigation }: BottomTabsScreenProps<Route
                 <Button
                   title="Retry"
                   variant="textPrimary"
-                  onPress={() =>
-                    void (query.isFetchNextPageError ? query.fetchNextPage() : query.refetch())
-                  }
+                  onPress={() => void (isFetchNextPageError ? fetchNextPage() : refetch())}
                 />
               </View>
             )}
           </>
         }
         ListEmptyComponent={
-          query.isPending ? (
-            <ActivityIndicator accessibilityLabel="Loading available units" />
-          ) : query.isError ? null : (
-            <Text color="textSecondary">
+          isLoading ? (
+            <StyledActivityIndicator size="large" accessibilityLabel="Loading available units" />
+          ) : isError ? null : (
+            <Text color="textSecondary" align="center">
               {offline
                 ? "No matching downloaded records"
                 : "No available units match your filters."}
@@ -132,8 +142,8 @@ export function AvailableUnitsScreen({ navigation }: BottomTabsScreenProps<Route
           )
         }
         ListFooterComponent={
-          query.isFetchingNextPage ? (
-            <ActivityIndicator accessibilityLabel="Loading more units" />
+          isFetchingNextPage ? (
+            <StyledActivityIndicator accessibilityLabel="Loading more units" />
           ) : null
         }
       />

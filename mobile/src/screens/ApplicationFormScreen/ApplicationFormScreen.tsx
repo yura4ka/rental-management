@@ -4,7 +4,6 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet } from "react-native-unistyles";
 import { StackActions, usePreventRemove, type NavigationAction } from "@react-navigation/native";
-import { toast as notify } from "sonner-native";
 import { useAppForm } from "@/app/form";
 import { Routes } from "@/app/navigation/routes";
 import type { AuthenticatedStackScreenProps } from "@/app/navigation/types";
@@ -93,7 +92,7 @@ function ApplicationForm({
           if (result.status === "Accepted") {
             toast.success("Application submitted.");
             setExitAction(StackActions.replace(Routes.ApplicationDetails, { applicationId: id }));
-          } else notify("Submission pending — not yet confirmed by the server.");
+          } else toast.info("Submission pending — not yet confirmed by the server.");
         } else {
           const result = await (
             step === "ApplicantInformation" ? information : residences
@@ -104,7 +103,7 @@ function ApplicationForm({
           const current = await editor.refetch();
           if (current.data) setStep(current.data.currentStep);
           if (result.status === "Pending")
-            notify("Saved on this device. Server confirmation is pending.");
+            toast.info("Saved on this device. Server confirmation is pending.");
           await summary.refetch();
         }
       } catch (error) {

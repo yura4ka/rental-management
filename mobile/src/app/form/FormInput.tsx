@@ -17,7 +17,8 @@ export function FormInput({
   ...props
 }: FormInputProps) {
   const field = useFieldContext<string>();
-  const errorMessage = getErrorMessage(field.state.meta.errors);
+  const showError = !field.state.meta.isValid && field.state.meta.isTouched;
+  const errorMessage = showError ? getErrorMessage(field.state.meta.errors) : undefined;
   const ref = useCallback(
     (input: TextInput | null) => registerInput?.(field.name, input),
     [field.name, registerInput],
@@ -28,7 +29,7 @@ export function FormInput({
       {...props}
       ref={ref}
       value={field.state.value}
-      isError={!field.state.meta.isValid}
+      isError={showError}
       description={errorMessage ?? description}
       onChangeText={(value) => {
         field.handleChange(value);

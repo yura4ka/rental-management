@@ -13,13 +13,14 @@ export function FormInputPressable({
   ...props
 }: FormInputPressableProps) {
   const field = useFieldContext<string>();
-  const errorMessage = getErrorMessage(field.state.meta.errors);
+  const showError = !field.state.meta.isValid && field.state.meta.isTouched;
+  const errorMessage = showError ? getErrorMessage(field.state.meta.errors) : undefined;
 
   return (
     <InputPressable
       {...props}
       value={formatValue ? formatValue(field.state.value) : field.state.value}
-      isError={!field.state.meta.isValid}
+      isError={showError}
       description={errorMessage ?? description}
       onBlur={(event) => {
         field.handleBlur();
