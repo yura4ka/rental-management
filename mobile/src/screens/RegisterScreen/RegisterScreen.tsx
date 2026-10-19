@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
+import { useIsFocused } from "@react-navigation/native";
 import { useAppForm, useFormInputs } from "@/app/form";
 import { getErrorMessage } from "@/app/form/getErrorMessage";
 import { Routes } from "@/app/navigation/routes";
@@ -10,6 +11,7 @@ import { AuthCard } from "@/components/layout";
 import { Button, Chip, Text } from "@/components/ui";
 import { registerSchema, type RegisterInput } from "@/features/auth/schemas";
 import { useLogin, useRegister } from "@/features/auth/hooks";
+import { useIsOnline } from "@/services/network/hooks";
 import { getApiErrorMessage, getFieldErrors } from "@/shared/utils/errorUtils";
 
 const defaultValues = {
@@ -19,6 +21,8 @@ const defaultValues = {
 } satisfies RegisterInput as RegisterInput;
 
 export function RegisterScreen({ navigation }: UnauthenticatedStackScreenProps<Routes.Register>) {
+  const isOnline = useIsOnline();
+  const isFocused = useIsFocused();
   const register = useRegister();
   const login = useLogin();
   const [registered, setRegistered] = useState(false);
@@ -44,6 +48,10 @@ export function RegisterScreen({ navigation }: UnauthenticatedStackScreenProps<R
     },
   });
   const { registerInput, focusInput } = useFormInputs<typeof form>();
+
+  useEffect(() => {
+    if (isFocused && !isOnline) navigation.replace(Routes.NoConnection);
+  }, [isFocused, isOnline, navigation]);
 
   return (
     <AuthCard title="Create an account">

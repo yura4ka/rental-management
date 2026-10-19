@@ -1,5 +1,7 @@
+import { useEffect } from "react";
 import { StyleSheet } from "react-native-unistyles";
 import { View } from "react-native";
+import { useIsFocused } from "@react-navigation/native";
 import { useAppForm, useFormInputs } from "@/app/form";
 import { Routes } from "@/app/navigation/routes";
 import type { UnauthenticatedStackScreenProps } from "@/app/navigation/types";
@@ -8,11 +10,14 @@ import { AuthCard } from "@/components/layout";
 import { Button } from "@/components/ui";
 import { loginSchema, type LoginInput } from "@/features/auth/schemas";
 import { useLogin } from "@/features/auth/hooks";
+import { useIsOnline } from "@/services/network/hooks";
 import { getApiErrorMessage, getFieldErrors } from "@/shared/utils/errorUtils";
 
 const defaultValues = { email: "", password: "" } satisfies LoginInput as LoginInput;
 
 export function LoginScreen({ navigation }: UnauthenticatedStackScreenProps<Routes.Login>) {
+  const isOnline = useIsOnline();
+  const isFocused = useIsFocused();
   const login = useLogin();
   const form = useAppForm({
     defaultValues,
@@ -27,6 +32,10 @@ export function LoginScreen({ navigation }: UnauthenticatedStackScreenProps<Rout
     },
   });
   const { registerInput, focusInput } = useFormInputs<typeof form>();
+
+  useEffect(() => {
+    if (isFocused && !isOnline) navigation.replace(Routes.NoConnection);
+  }, [isFocused, isOnline, navigation]);
 
   return (
     <AuthCard title="Log in">
