@@ -70,7 +70,7 @@ public sealed class ApplicationStatusHistoryConfiguration : IEntityTypeConfigura
                   ([Action] = 'Return' AND [FromStatus] = 'InReview' AND [ToStatus] = 'Returned') OR
                   ([Action] = 'Deny' AND [FromStatus] IN ('Draft', 'Submitted', 'InReview', 'Returned') AND [ToStatus] = 'Denied') OR
                   ([Action] = 'Approve' AND [FromStatus] = 'InReview' AND [ToStatus] = 'Approved') OR
-                  ([Action] = 'Withdraw' AND [FromStatus] IN ('Draft', 'Returned', 'Submitted', 'InReview') AND [ToStatus] = 'Withdrawn'))
+                  ([Action] = 'Withdraw' AND [FromStatus] IN ('Draft', 'Returned', 'Submitted', 'InReview') AND [ToStatus] = 'Withdrawn')))
                 """);
         });
         b.HasKey(h => h.Id);

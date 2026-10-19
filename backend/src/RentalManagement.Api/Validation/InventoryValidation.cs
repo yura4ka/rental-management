@@ -46,6 +46,27 @@ internal static partial class InventoryValidation
         ValidationErrors.ThrowIfInvalid(new ValidationResult(errors));
     }
 
+    internal static void AvailableUnits(AvailableUnitsQuery query)
+    {
+        Pagination(query.Page, query.PageSize);
+        var errors = new List<ValidationFailure>();
+        if (query.UnitTypeIds?.Contains(Guid.Empty) == true)
+            errors.Add(new("unitTypeIds", "Supply valid unit type UUIDs."));
+        if (query.Bedrooms is < 0)
+            errors.Add(new("bedrooms", "Supply a nonnegative integer."));
+        if (query.PriceFrom is < 0 or > 999999999999L)
+            errors.Add(new("priceFrom", "Supply integer cents between 0 and 999999999999."));
+        if (query.PriceTo is < 0 or > 999999999999L)
+            errors.Add(new("priceTo", "Supply integer cents between 0 and 999999999999."));
+        if (query.PriceFrom > query.PriceTo)
+            errors.Add(new("priceTo", "Supply a price greater than or equal to priceFrom."));
+        if (query.SortBy is not (null or "price" or "createdAt"))
+            errors.Add(new("sortBy", "Use price or createdAt."));
+        if (query.SortDirection is not ("asc" or "desc"))
+            errors.Add(new("sortDirection", "Use asc or desc."));
+        ValidationErrors.ThrowIfInvalid(new ValidationResult(errors));
+    }
+
     private static void Length(string? value, int limit, string path, List<ValidationFailure> errors)
     {
         if (value?.Length > limit) errors.Add(new(path, $"Use at most {limit} characters."));

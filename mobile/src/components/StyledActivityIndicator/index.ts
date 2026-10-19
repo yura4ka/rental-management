@@ -1,0 +1,1 @@
+export { StyledActivityIndicator } from "./StyledActivityIndicator";

@@ -161,10 +161,10 @@ public sealed class InventoryService(ApplicationDbContext db, TimeProvider clock
         }, cancellationToken);
     }
 
-    public async Task<InventoryPage<AvailableUnitResponse>> AvailableAsync(int page, int pageSize,
+    public async Task<InventoryPage<AvailableUnitResponse>> AvailableAsync(AvailableUnitsQuery request,
         CancellationToken cancellationToken)
     {
-        InventoryValidation.Pagination(page, pageSize);
+        InventoryValidation.AvailableUnits(request);
         var today = DateOnly.FromDateTime(clock.GetUtcNow().UtcDateTime);
         var query = from unit in db.Units.AsNoTracking()
                     join property in db.Properties.AsNoTracking() on unit.PropertyId equals property.Id
@@ -174,12 +174,35 @@ public sealed class InventoryService(ApplicationDbContext db, TimeProvider clock
                           join application in db.RentalApplications on lease.ApplicationId equals application.Id
                           where application.UnitId == unit.Id && lease.StartDate <= today && today < lease.EndDateExclusive
                           select lease.Id).Any()
-                    select new { Unit = unit, Property = property, Type = type };
+                     select new { Unit = unit, Property = property, Type = type };
+        if (request.UnitTypeIds is { Length: > 0 } typeIds)
+            query = query.Where(r => typeIds.Contains(r.Unit.UnitTypeId));
+        if (request.Bedrooms is { } bedrooms)
+            query = query.Where(r => r.Unit.Bedrooms == bedrooms);
+        if (request.PriceFrom is { } priceFrom)
+        {
+            var minimumRent = priceFrom / 100m;
+            query = query.Where(r => r.Unit.MonthlyRent >= minimumRent);
+        }
+        if (request.PriceTo is { } priceTo)
+        {
+            var maximumRent = priceTo / 100m;
+            query = query.Where(r => r.Unit.MonthlyRent <= maximumRent);
+        }
+
         var total = await query.CountAsync(cancellationToken);
-        var rows = await query.OrderBy(r => r.Property.Id).ThenBy(r => r.Unit.Number).ThenBy(r => r.Unit.Id)
-            .Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(cancellationToken);
+        var ordered = (request.SortBy, request.SortDirection) switch
+        {
+            ("price", "asc") => query.OrderBy(r => r.Unit.MonthlyRent),
+            ("price", "desc") => query.OrderByDescending(r => r.Unit.MonthlyRent),
+            ("createdAt", "asc") => query.OrderBy(r => r.Unit.CreatedAt),
+            ("createdAt", "desc") => query.OrderByDescending(r => r.Unit.CreatedAt),
+            _ => query.OrderBy(r => r.Property.Id).ThenBy(r => r.Unit.Number)
+        };
+        var rows = await ordered.ThenBy(r => r.Unit.Id)
+            .Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToListAsync(cancellationToken);
         return new(rows.Select(r => new AvailableUnitResponse(PropertyDto(r.Property), UnitDto(r.Unit),
-            TypeDto(r.Type))).ToArray(), total, page, pageSize);
+            TypeDto(r.Type))).ToArray(), total, request.Page, request.PageSize);
     }
 
     public async Task<IReadOnlyList<UnitTypeResponse>> TypesAsync(CancellationToken cancellationToken) =>
@@ -188,8 +211,13 @@ public sealed class InventoryService(ApplicationDbContext db, TimeProvider clock
 
     private async Task<Property> LockPropertyAsync(Guid id, Guid owner, CancellationToken cancellationToken)
     {
-        var property = await db.Properties.FromSqlInterpolated(
-                $"SELECT * FROM [Properties] WITH (UPDLOCK, HOLDLOCK) WHERE [Id] = {id} AND [OwnerManagerId] = {owner}")
+        // FromSql composition expects complex-property aliases rather than their mapped column names.
+        var property = await db.Properties.FromSqlInterpolated($"""
+                SELECT *, [DisplayName] AS [Address_DisplayName], [Line2] AS [Address_Line2],
+                    [StreetAddress] AS [Address_StreetAddress]
+                FROM [Properties] WITH (UPDLOCK, HOLDLOCK)
+                WHERE [Id] = {id} AND [OwnerManagerId] = {owner}
+                """)
             .SingleOrDefaultAsync(cancellationToken) ?? throw NotFound();
         if (property.ArchivedAt is not null) throw Archived();
         return property;

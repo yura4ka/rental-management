@@ -18,9 +18,9 @@ public sealed class InventoryBrowseController(InventoryService inventory) : Cont
     [ProducesResponseType<InventoryPage<AvailableUnitResponse>>(StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status422UnprocessableEntity, "application/problem+json")]
-    public async Task<ActionResult<InventoryPage<AvailableUnitResponse>>> Available(CancellationToken cancellationToken,
-        [FromQuery] int page = 1, [FromQuery] int pageSize = 20) =>
-        Ok(await inventory.AvailableAsync(page, pageSize, cancellationToken));
+    public async Task<ActionResult<InventoryPage<AvailableUnitResponse>>> Available(
+        [FromQuery] AvailableUnitsQuery query, CancellationToken cancellationToken) =>
+        Ok(await inventory.AvailableAsync(query, cancellationToken));
 
     [HttpGet("unit-types")]
     [ProducesResponseType<IReadOnlyList<UnitTypeResponse>>(StatusCodes.Status200OK, "application/json")]

@@ -75,6 +75,46 @@ public sealed class InventoryValidationTests
         Assert.Equal(422, Assert.Throws<ApiException>(() => InventoryValidation.Pagination(page, size)).Status);
 
     [Fact]
+    public void AvailableUnitsAcceptOptionalFiltersAndInclusiveCentsBoundaries()
+    {
+        InventoryValidation.AvailableUnits(new());
+        InventoryValidation.AvailableUnits(new() { UnitTypeIds = [], Bedrooms = 0, PriceFrom = 0, PriceTo = 999999999999 });
+        foreach (var sort in new[] { "price", "createdAt" })
+        foreach (var direction in new[] { "asc", "desc" })
+            InventoryValidation.AvailableUnits(new()
+            {
+                UnitTypeIds = [Guid.NewGuid()], PriceFrom = 12345, PriceTo = 12345,
+                SortBy = sort, SortDirection = direction
+            });
+    }
+
+    [Fact]
+    public void AvailableUnitsRejectInvalidFiltersWithExactPaths()
+    {
+        var invalid = new (AvailableUnitsQuery Query, string Field)[]
+        {
+            (new() { UnitTypeIds = [Guid.Empty] }, "unitTypeIds"),
+            (new() { Bedrooms = -1 }, "bedrooms"),
+            (new() { PriceFrom = -1 }, "priceFrom"),
+            (new() { PriceTo = -1 }, "priceTo"),
+            (new() { PriceFrom = 1000000000000 }, "priceFrom"),
+            (new() { PriceTo = 1000000000000 }, "priceTo"),
+            (new() { PriceFrom = 101, PriceTo = 100 }, "priceTo"),
+            (new() { SortBy = "monthlyRentCents" }, "sortBy"),
+            (new() { SortBy = "" }, "sortBy"),
+            (new() { SortDirection = "ASC" }, "sortDirection"),
+            (new() { Page = 0 }, "page"),
+            (new() { PageSize = 101 }, "pageSize")
+        };
+        foreach (var (query, field) in invalid)
+        {
+            var error = Assert.Throws<ApiException>(() => InventoryValidation.AvailableUnits(query));
+            Assert.Equal(422, error.Status);
+            Assert.Contains(field, error.Fields!.Keys);
+        }
+    }
+
+    [Fact]
     public void VersionsAreStringsButRentRemainsAnInteger()
     {
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web)

@@ -69,7 +69,7 @@ public sealed class ApplicantProfileService(ApplicationDbContext db,
     {
         await using var transaction = db.Database.CurrentTransaction is null
             ? await db.Database.BeginTransactionAsync(cancellationToken) : null;
-        var profile = await db.ApplicantProfiles.AsNoTracking().SingleOrDefaultAsync(p => p.ApplicantId == id, cancellationToken)
+        var profile = await db.ApplicantProfiles.SingleOrDefaultAsync(p => p.ApplicantId == id, cancellationToken)
             ?? throw new ApiException(404, "ProfileNotFound", "Profile not found.");
         if (profile.Version != expectedVersion) throw StaleVersion();
         if (profile.Version == long.MaxValue)
