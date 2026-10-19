@@ -129,13 +129,13 @@ export function PropertyDetailsScreen({
       <SafeAreaView edges={["bottom", "left", "right"]} style={styles.footer}>
         <Button
           title="Edit property"
-          variant="secondary"
           style={styles.action}
           disabled={sheet !== null || !!property.archivedAt}
           onPress={() => setSheet({ kind: "edit" })}
         />
         <Button
           title="Archive property"
+          variant="text"
           style={styles.action}
           disabled={sheet !== null || !!property.archivedAt}
           onPress={() => setSheet({ kind: "archive", property })}
@@ -171,14 +171,25 @@ export function PropertyDetailsScreen({
 }
 
 const styles = StyleSheet.create((theme) => ({
-  screen: { flex: 1 },
-  headerButtons: { flexDirection: "row", gap: theme.spacing.sm },
-  feedback: { padding: theme.spacing.lg, gap: theme.spacing.md },
-  footer: {
+  screen: {
+    flex: 1,
+  },
+  headerButtons: {
     flexDirection: "row",
+    gap: theme.spacing.sm,
+  },
+  feedback: {
+    padding: theme.spacing.lg,
+    gap: theme.spacing.md,
+  },
+  footer: {
     gap: theme.spacing.sm,
     padding: theme.spacing.lg,
     backgroundColor: theme.colors.surface,
+    borderTopWidth: theme.borderWidth.default,
+    borderTopColor: theme.colors.border,
   },
-  action: { flex: 1 },
+  action: {
+    flex: 1,
+  },
 }));

@@ -39,7 +39,7 @@ export function UnitFormSheet({
   const readOnly = !!property.archivedAt || !!snapshot.unit?.archivedAt;
   const form = useAppForm({
     defaultValues: snapshot.values,
-    validators: { onChange: unitFormSchema, onSubmit: unitFormSchema },
+    validators: { onBlur: unitFormSchema },
     onSubmit: async ({ value, formApi }) => {
       if (pending || readOnly || confirming) return;
       setError("");
@@ -103,6 +103,7 @@ export function UnitFormSheet({
                 <BottomSheet.Header
                   title={readOnly ? "Unit details" : snapshot.unit ? "Edit unit" : "Add unit"}
                   noCloseButton={busy || confirming}
+                  border={true}
                 />
                 <ScrollView keyboardShouldPersistTaps="handled">
                   <BottomSheet.Body>

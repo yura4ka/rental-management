@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView } from "react-native";
-import { StyleSheet } from "react-native-unistyles";
+import { ActivityIndicator, ScrollView } from "react-native";
 import { TrueSheet } from "@lodev09/react-native-true-sheet";
 import { BottomSheet } from "@/components/BottomSheet";
 import { SelectableList } from "@/components/SelectableList/SelectableList";
-import { Button, Text } from "@/components/ui";
+import { Button, CheckBox, Text } from "@/components/ui";
 import { getAddressDisplayName } from "@/features/address/utils";
 import { useApplications } from "../hooks";
 import {
@@ -58,25 +57,21 @@ export function ApplicationsFiltersSheet({
   return (
     <BottomSheet.Root ref={sheet}>
       <BottomSheet.Content scrollable onDidDismiss={onClose}>
-        <BottomSheet.Header title="Filter applications" />
+        <BottomSheet.Header title="Filter applications" border={true} />
         <ScrollView>
           <BottomSheet.Body>
             {manager && (
-              <Pressable
-                accessibilityRole="checkbox"
-                accessibilityLabel="Show archived"
-                accessibilityState={{ checked: draft.showArchived }}
-                style={styles.checkbox}
-                onPress={() =>
+              <CheckBox
+                title={"Show archived"}
+                checked={draft.showArchived}
+                onCheckedChange={(checked) =>
                   setDraft({
                     ...draft,
-                    showArchived: !draft.showArchived,
+                    showArchived: checked,
                     propertyId: draft.showArchived ? "" : draft.propertyId,
                   })
                 }
-              >
-                <Text>{draft.showArchived ? "☑" : "☐"} Show archived</Text>
-              </Pressable>
+              />
             )}
             <Text variant="sectionHeading">Status</Text>
             <SelectableList
@@ -139,10 +134,3 @@ export function ApplicationsFiltersSheet({
     </BottomSheet.Root>
   );
 }
-
-const styles = StyleSheet.create({
-  checkbox: {
-    minHeight: 48,
-    justifyContent: "center",
-  },
-});

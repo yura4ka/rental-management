@@ -30,11 +30,13 @@ export function BottomTabsNavigator() {
           tabBarIcon: TabBarElements.HomeIcon,
         }}
       />
-      <Tab.Screen
-        name={Routes.AvailableUnits}
-        component={AvailableUnitsScreen}
-        options={{ title: "Browse", tabBarIcon: TabBarElements.AvailableUnitsIcon }}
-      />
+      {account?.role === "Applicant" && (
+        <Tab.Screen
+          name={Routes.AvailableUnits}
+          component={AvailableUnitsScreen}
+          options={{ title: "Browse", tabBarIcon: TabBarElements.AvailableUnitsIcon }}
+        />
+      )}
       {account?.role === "PropertyManager" && (
         <Tab.Screen
           name={Routes.MyProperties}

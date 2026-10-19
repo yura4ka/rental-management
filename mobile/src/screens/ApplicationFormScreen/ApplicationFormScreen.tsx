@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { StyleSheet } from "react-native-unistyles";
 import { StackActions, usePreventRemove, type NavigationAction } from "@react-navigation/native";
 import { useAppForm } from "@/app/form";
@@ -31,6 +30,7 @@ import { useApplicationFormState } from "@/features/applications/useApplicationF
 import { applicationFormFieldErrors } from "@/features/applications/formErrors";
 import { useApplicationDraftPersistence } from "@/features/applications/useApplicationDraftPersistence";
 import { getOperationErrorMessage } from "@/features/operations/operationErrorMessage";
+import { ScrollViewLayout } from "@/components/layout";
 
 type Props = AuthenticatedStackScreenProps<Routes.ApplicationForm>;
 
@@ -73,9 +73,9 @@ function ApplicationForm({
   const schema = applicationStepFormSchema(step);
   const form = useAppForm({
     defaultValues: initialEditor.input,
-    validators: { onChange: schema, onSubmit: schema },
+    validators: { onBlur: schema },
     listeners: {
-      onChange: ({ formApi }) => {
+      onBlur: ({ formApi }) => {
         void persist(formApi.state.values).catch(() => {});
       },
     },
@@ -151,9 +151,9 @@ function ApplicationForm({
 
   return (
     <form.AppForm>
-      <SafeAreaView edges={["bottom", "left", "right"]} style={styles.screen}>
-        <KeyboardAwareScrollView
-          keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView style={styles.screen}>
+        <ScrollViewLayout
+          edges={["bottom", "left", "right"]}
           contentContainerStyle={styles.content}
         >
           <Text color="textSecondary">
@@ -203,32 +203,38 @@ function ApplicationForm({
             onCorrect={() => setReplacement(rejected?.id)}
             onBack={() => void back()}
           />
-        </KeyboardAwareScrollView>
-        {copySection && (
-          <CopyApplicationProfileSection
-            id={id}
-            section={copySection}
-            onBusyChange={setBusy}
-            onClose={() => setCopySection(null)}
-            beforeCopy={async () => {
-              await persist(form.state.values, step);
-            }}
-            onCopied={(input) => {
-              if (copySection === "ApplicantInformation")
-                form.setFieldValue("applicantInformation", input.applicantInformation);
-              else {
-                form.setFieldValue("residenceHistory", input.residenceHistory);
-                setResidenceRevision((value) => value + 1);
-              }
-            }}
-          />
-        )}
-      </SafeAreaView>
+        </ScrollViewLayout>
+      </KeyboardAvoidingView>
+      {copySection && (
+        <CopyApplicationProfileSection
+          id={id}
+          section={copySection}
+          onBusyChange={setBusy}
+          onClose={() => setCopySection(null)}
+          beforeCopy={async () => {
+            await persist(form.state.values, step);
+          }}
+          onCopied={(input) => {
+            if (copySection === "ApplicantInformation")
+              form.setFieldValue("applicantInformation", input.applicantInformation);
+            else {
+              form.setFieldValue("residenceHistory", input.residenceHistory);
+              setResidenceRevision((value) => value + 1);
+            }
+          }}
+        />
+      )}
     </form.AppForm>
   );
 }
 
 const styles = StyleSheet.create((theme) => ({
-  screen: { flex: 1 },
-  content: { padding: theme.spacing.lg, gap: theme.spacing.md },
+  screen: {
+    flexGrow: 1,
+  },
+  content: {
+    flexGrow: 1,
+    padding: theme.spacing.lg,
+    gap: theme.spacing.md,
+  },
 }));

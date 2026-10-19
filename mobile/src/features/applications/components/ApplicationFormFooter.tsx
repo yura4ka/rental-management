@@ -1,3 +1,5 @@
+import { StyleSheet } from "react-native-unistyles";
+import { View } from "react-native";
 import { withForm } from "@/app/form";
 import { Button, Text } from "@/components/ui";
 import { editorDefaults, type ApplicationStep } from "../forms";
@@ -24,7 +26,7 @@ export const ApplicationFormFooter = withForm({
     onBack,
   }) {
     return (
-      <>
+      <View style={styles.container}>
         {needsCorrection && (
           <Button title="Correct rejected save" disabled={disabled} onPress={onCorrect} />
         )}
@@ -38,7 +40,14 @@ export const ApplicationFormFooter = withForm({
           title={step === "Summary" ? "Submit application" : "Continue"}
           disabled={disabled || needsCorrection || (step === "Summary" && submitBlocked)}
         />
-      </>
+      </View>
     );
   },
 });
+
+const styles = StyleSheet.create((theme) => ({
+  container: {
+    gap: theme.spacing.sm,
+    marginTop: "auto",
+  },
+}));

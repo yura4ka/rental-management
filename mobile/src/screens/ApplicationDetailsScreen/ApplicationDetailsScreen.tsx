@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { ActivityIndicator, RefreshControl, View } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { StyleSheet } from "react-native-unistyles";
 import { Routes } from "@/app/navigation/routes";
 import type { AuthenticatedStackScreenProps } from "@/app/navigation/types";
@@ -26,6 +25,8 @@ import {
 } from "@/features/applications/presentation";
 import type { ApplicationDto } from "@/features/applications/types";
 import { useSessionState } from "@/services/session";
+import { ScrollViewLayout } from "@/components/layout";
+import { Card } from "@/components";
 
 export function ApplicationDetailsScreen({
   route,
@@ -82,8 +83,9 @@ export function ApplicationDetailsScreen({
   };
 
   return (
-    <SafeAreaView edges={["bottom", "left", "right"]} style={styles.screen}>
-      <KeyboardAwareScrollView
+    <KeyboardAvoidingView style={styles.screen}>
+      <ScrollViewLayout
+        edges={["bottom", "left", "right"]}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={query.isRefetching} onRefresh={refresh} />}
@@ -140,93 +142,112 @@ export function ApplicationDetailsScreen({
           <View style={styles.badges}>
             {actions.edit && (
               <Button
+                size="sm"
                 title="Edit"
                 variant="secondary"
                 onPress={() => navigation.navigate(Routes.ApplicationForm, { applicationId })}
               />
             )}
             {actions.withdraw && (
-              <Button title="Delete" onPress={() => setConfirmation(application)} />
+              <Button title="Delete" size="sm" onPress={() => setConfirmation(application)} />
             )}
           </View>
         )}
-
-        <Text variant="sectionHeading">Application</Text>
-        <LabelValue
-          items={[
-            { label: "Application ID", value: application.id },
-            { label: "Property", value: getAddressDisplayName(application.propertyAddress) },
-            { label: "Unit", value: application.unitNumber },
-            { label: "Created", value: applicationDate(application.createdAt) },
-            { label: "Status changed", value: applicationDate(application.statusChangedAt) },
-          ]}
-        />
-        <Text variant="sectionHeading">Applicant information</Text>
-        <LabelValue
-          items={[
-            { label: "Name", value: info.name },
-            { label: "Phone", value: info.phone },
-            { label: "Email", value: info.contactEmail },
-            { label: "Current address", value: getAddressDisplayName(info.currentAddress) },
-            {
-              label: "Information saved",
-              value: applicationDate(data.applicantInformationSavedAt),
-            },
-          ]}
-        />
-        <Text variant="sectionHeading">Residence history</Text>
-        {!data.residenceHistorySavedAt ? (
-          <Text color="textSecondary">Residence history has not been saved.</Text>
-        ) : (
-          !data.residenceHistory.length && (
-            <Text color="textSecondary">No previous residences.</Text>
-          )
-        )}
-        {data.residenceHistory.map((residence) => (
-          <LabelValue
-            key={residence.position}
-            items={[
-              { label: "Address", value: getAddressDisplayName(residence.address) },
-              { label: "Landlord", value: residence.landlordName },
-              { label: "Landlord phone", value: residence.landlordPhone },
-              { label: "Move-in date", value: applicationDate(residence.moveInDate, true) },
-              { label: "Move-out date", value: applicationDate(residence.moveOutDate, true) },
-            ]}
-          />
-        ))}
-        <Text variant="sectionHeading">Review history</Text>
-        {!data.history.length && <Text color="textSecondary">No history yet.</Text>}
-        {data.history.map((entry) => (
-          <LabelValue
-            key={entry.id}
-            items={[
-              { label: "Action", value: entry.action },
-              {
-                label: "Previous status",
-                value: entry.fromStatus ? statusLabel(entry.fromStatus) : "None",
-              },
-              { label: "New status", value: statusLabel(entry.toStatus) },
-              { label: "Actor", value: entry.actorUserId },
-              { label: "Date", value: new Date(entry.occurredAt).toLocaleString() },
-              { label: "Comment", value: entry.comment },
-            ]}
-          />
-        ))}
-        <Text variant="sectionHeading">Lease</Text>
-        {data.lease ? (
-          <LabelValue
-            items={[
-              { label: "Start date", value: applicationDate(data.lease.startDate, true) },
-              {
-                label: "End date (exclusive)",
-                value: applicationDate(data.lease.endDateExclusive, true),
-              },
-              { label: "Approved", value: applicationDate(data.lease.approvedAt) },
-            ]}
-          />
-        ) : (
-          <Text color="textSecondary">No lease issued.</Text>
-        )}
+        <Card.Root>
+          <Card.Header title="Application" border={true} />
+          <Card.Body>
+            <LabelValue
+              items={[
+                { label: "Application ID", value: application.id },
+                { label: "Property", value: getAddressDisplayName(application.propertyAddress) },
+                { label: "Unit", value: application.unitNumber },
+                { label: "Created", value: applicationDate(application.createdAt) },
+                { label: "Status changed", value: applicationDate(application.statusChangedAt) },
+              ]}
+            />
+          </Card.Body>
+        </Card.Root>
+        <Card.Root>
+          <Card.Header title="Applicant information" border={true} />
+          <Card.Body>
+            <LabelValue
+              items={[
+                { label: "Name", value: info.name },
+                { label: "Phone", value: info.phone },
+                { label: "Email", value: info.contactEmail },
+                { label: "Current address", value: getAddressDisplayName(info.currentAddress) },
+                {
+                  label: "Information saved",
+                  value: applicationDate(data.applicantInformationSavedAt),
+                },
+              ]}
+            />
+          </Card.Body>
+        </Card.Root>
+        <Card.Root>
+          <Card.Header title="Residence history" border={true} />
+          <Card.Body>
+            {!data.residenceHistorySavedAt ? (
+              <Text color="textSecondary">Residence history has not been saved.</Text>
+            ) : (
+              !data.residenceHistory.length && (
+                <Text color="textSecondary">No previous residences.</Text>
+              )
+            )}
+            {data.residenceHistory.map((residence) => (
+              <LabelValue
+                key={residence.position}
+                items={[
+                  { label: "Address", value: getAddressDisplayName(residence.address) },
+                  { label: "Landlord", value: residence.landlordName },
+                  { label: "Landlord phone", value: residence.landlordPhone },
+                  { label: "Move-in date", value: applicationDate(residence.moveInDate, true) },
+                  { label: "Move-out date", value: applicationDate(residence.moveOutDate, true) },
+                ]}
+              />
+            ))}
+          </Card.Body>
+        </Card.Root>
+        <Card.Root>
+          <Card.Header title="Review history" border={true} />
+          <Card.Body>
+            {!data.history.length && <Text color="textSecondary">No history yet.</Text>}
+            {data.history.map((entry) => (
+              <LabelValue
+                key={entry.id}
+                items={[
+                  { label: "Action", value: entry.action },
+                  {
+                    label: "Previous status",
+                    value: entry.fromStatus ? statusLabel(entry.fromStatus) : "None",
+                  },
+                  { label: "New status", value: statusLabel(entry.toStatus) },
+                  { label: "Date", value: new Date(entry.occurredAt).toLocaleString() },
+                  { label: "Comment", value: entry.comment },
+                ]}
+              />
+            ))}
+          </Card.Body>
+        </Card.Root>
+        <Card.Root>
+          <Card.Header title="Lease" border={true} />
+          <Card.Body>
+            {data.lease ? (
+              <LabelValue
+                items={[
+                  { label: "Start date", value: applicationDate(data.lease.startDate, true) },
+                  {
+                    label: "End date (exclusive)",
+                    value: applicationDate(data.lease.endDateExclusive, true),
+                  },
+                  { label: "Approved", value: applicationDate(data.lease.approvedAt) },
+                ]}
+              />
+            ) : (
+              <Text color="textSecondary">No lease issued.</Text>
+            )}
+          </Card.Body>
+        </Card.Root>
         {manager && (
           <ManagerNoteField
             key={application.id}
@@ -235,7 +256,7 @@ export function ApplicationDetailsScreen({
             locked={noteLocked}
           />
         )}
-      </KeyboardAwareScrollView>
+      </ScrollViewLayout>
       {confirmation && (
         <ConfirmationBottomSheet
           title="Delete application?"
@@ -252,7 +273,7 @@ export function ApplicationDetailsScreen({
           }
         />
       )}
-    </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 

@@ -1,10 +1,11 @@
 import { useMemo, type ReactNode } from "react";
-import { ActivityIndicator, Pressable, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
 import type { InfiniteData, UseInfiniteQueryResult } from "@tanstack/react-query";
 import { FlatListLayout } from "@/components/layout";
 import { Button, Text } from "@/components/ui";
 import type { InventoryPageDto } from "@/features/properties/types";
+import { StyledActivityIndicator } from "@/components";
 import type { InventoryRead } from "../inventoryService";
 
 export function ManagedInventoryList<T extends { id: string }>({
@@ -68,17 +69,17 @@ export function ManagedInventoryList<T extends { id: string }>({
         </View>
       }
       ListEmptyComponent={
-        query.isPending ? (
-          <ActivityIndicator accessibilityLabel={`Loading ${label}`} />
+        query.isLoading ? (
+          <StyledActivityIndicator size="large" accessibilityLabel={`Loading ${label}`} />
         ) : query.isError ? null : (
-          <Text color="textSecondary">
+          <Text color="textSecondary" align="center">
             {offline ? "No matching downloaded records" : `No ${label} to show.`}
           </Text>
         )
       }
       ListFooterComponent={
         query.isFetchingNextPage ? (
-          <ActivityIndicator accessibilityLabel={`Loading more ${label}`} />
+          <StyledActivityIndicator accessibilityLabel={`Loading more ${label}`} />
         ) : null
       }
     />
@@ -99,7 +100,8 @@ export function InventoryManagementCard({
   onPress: () => void;
 }) {
   return (
-    <Pressable
+    <TouchableOpacity
+      activeOpacity={0.8}
       accessibilityRole="button"
       accessibilityLabel={title}
       disabled={disabled}
@@ -109,7 +111,7 @@ export function InventoryManagementCard({
       <Text fontFamily="semibold">{title}</Text>
       {!!description && <Text color="textSecondary">{description}</Text>}
       {archived && <Text color="textSecondary">Archived</Text>}
-    </Pressable>
+    </TouchableOpacity>
   );
 }
 

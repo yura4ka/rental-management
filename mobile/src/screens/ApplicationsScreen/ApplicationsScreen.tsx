@@ -1,5 +1,5 @@
 import { useCallback, useLayoutEffect, useMemo, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { View } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
 import { Routes } from "@/app/navigation/routes";
 import type { BottomTabsScreenProps } from "@/app/navigation/types";
@@ -19,6 +19,7 @@ import {
   type ApplicationSort,
 } from "@/features/applications/presentation";
 import { useSessionState } from "@/services/session";
+import { StyledActivityIndicator } from "@/components";
 
 export function ApplicationsScreen({ navigation }: BottomTabsScreenProps<Routes.Applications>) {
   const manager = useSessionState((state) => state.account?.role === "PropertyManager");
@@ -113,10 +114,10 @@ export function ApplicationsScreen({ navigation }: BottomTabsScreenProps<Routes.
           </>
         }
         ListEmptyComponent={
-          query.isPending ? (
-            <ActivityIndicator accessibilityLabel="Loading applications" />
+          query.isLoading ? (
+            <StyledActivityIndicator accessibilityLabel="Loading applications" size={"large"} />
           ) : query.isError ? null : (
-            <Text color="textSecondary">
+            <Text color="textSecondary" align="center">
               {offline
                 ? "No matching downloaded applications."
                 : "No applications match your filters."}
@@ -125,7 +126,7 @@ export function ApplicationsScreen({ navigation }: BottomTabsScreenProps<Routes.
         }
         ListFooterComponent={
           query.isFetchingNextPage ? (
-            <ActivityIndicator accessibilityLabel="Loading more applications" />
+            <StyledActivityIndicator accessibilityLabel="Loading more applications" />
           ) : null
         }
       />

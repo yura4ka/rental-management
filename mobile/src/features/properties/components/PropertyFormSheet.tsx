@@ -31,7 +31,7 @@ export function PropertyFormSheet({
   const [error, setError] = useState("");
   const form = useAppForm({
     defaultValues: snapshot.values,
-    validators: { onChange: propertyFormSchema, onSubmit: propertyFormSchema },
+    validators: { onBlur: propertyFormSchema },
     onSubmit: async ({ value, formApi }) => {
       if (pending) return;
       setError("");
@@ -83,6 +83,7 @@ export function PropertyFormSheet({
               <BottomSheet.Header
                 title={snapshot.property ? "Edit property" : "Add property"}
                 noCloseButton={busy}
+                border={true}
               />
               <ScrollView keyboardShouldPersistTaps="handled">
                 <BottomSheet.Body>
@@ -101,7 +102,8 @@ export function PropertyFormSheet({
                   <form.AppField name="address.streetAddress">
                     {(field) => (
                       <field.FormInput
-                        label="Street address (required)"
+                        label="Street address"
+                        isRequired={true}
                         maxLength={200}
                         autoComplete="street-address"
                         editable={!busy && !pending}

@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Pressable } from "react-native";
-import { StyleSheet } from "react-native-unistyles";
 import { TrueSheet } from "@lodev09/react-native-true-sheet";
 import { BottomSheet } from "@/components/BottomSheet";
-import { Button, Text } from "@/components/ui";
+import { Button, CheckBox } from "@/components/ui";
 
 export function ArchivedFilterSheet({
   includeArchived,
@@ -25,15 +23,7 @@ export function ArchivedFilterSheet({
       <BottomSheet.Content onDidDismiss={onClose}>
         <BottomSheet.Header title="Filters" />
         <BottomSheet.Body>
-          <Pressable
-            accessibilityRole="checkbox"
-            accessibilityLabel="Show archived"
-            accessibilityState={{ checked }}
-            style={styles.checkbox}
-            onPress={() => setChecked(!checked)}
-          >
-            <Text>{checked ? "☑" : "☐"} Show archived</Text>
-          </Pressable>
+          <CheckBox title="Show archived" checked={checked} onCheckedChange={setChecked} />
         </BottomSheet.Body>
         <BottomSheet.Footer>
           <Button title="Reset" variant="textPrimary" onPress={() => setChecked(false)} />
@@ -49,11 +39,3 @@ export function ArchivedFilterSheet({
     </BottomSheet.Root>
   );
 }
-
-const styles = StyleSheet.create((theme) => ({
-  checkbox: {
-    minHeight: 48,
-    justifyContent: "center",
-    paddingVertical: theme.spacing.sm,
-  },
-}));
