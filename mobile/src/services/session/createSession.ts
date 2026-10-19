@@ -10,11 +10,16 @@ export function createSession(baseUrl: string, queryClient: QueryClient): Sessio
   const tokens = new TokenStorage(secureStorage);
   const keys = new KeyStorage(secureStorage);
   const database = new Database(new ExpoDatabaseDriver());
-  const transport = new FetchTransport(baseUrl, tokens, {
-    signOut: async () => {
-      if (session.status === "authenticated") await session.signOut("session-expired");
+  const transport = new FetchTransport(
+    baseUrl,
+    tokens,
+    {
+      signOut: async () => {
+        if (session.status === "authenticated") await session.signOut("session-expired");
+      },
     },
-  });
+    process.env.EXPO_PUBLIC_IS_ANDROID_EMULATOR === "true",
+  );
   const session: Session = new Session(tokens, keys, database, transport, queryClient, network);
   return session;
 }

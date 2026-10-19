@@ -1,3 +1,4 @@
+import { Platform } from "react-native";
 import { ITokenStorage, StoredTokens } from "@/services/secureStorage";
 import { TokenPairResponse } from "@/features/auth/types";
 import { HTTPError } from "./httpError";
@@ -22,8 +23,13 @@ export class FetchTransport implements HTTPTransport {
     baseUrl: string,
     private readonly tokenStorage: ITokenStorage,
     private readonly logoutManager: ILogoutManager,
+    isAndroidEmulator = false,
   ) {
     this.baseUrl = new URL(baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`);
+
+    if (isAndroidEmulator && Platform.OS === "android" && this.baseUrl.hostname === "localhost") {
+      this.baseUrl.hostname = "10.0.2.2";
+    }
   }
 
   fetch = async <T>(request: HTTPRequest): Promise<T> => {

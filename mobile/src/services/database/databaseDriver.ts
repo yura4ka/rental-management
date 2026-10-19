@@ -5,7 +5,11 @@ import { IDatabaseConnection, IDatabaseDriver } from "./types";
 
 export class ExpoDatabaseDriver implements IDatabaseDriver {
   async exists(name: string): Promise<boolean> {
-    return new File(defaultDatabaseDirectory, name).exists;
+    const directory = defaultDatabaseDirectory.startsWith("file://")
+      ? defaultDatabaseDirectory
+      : `file://${defaultDatabaseDirectory}`;
+
+    return new File(directory, name).exists;
   }
 
   async delete(name: string): Promise<void> {
