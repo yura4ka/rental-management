@@ -211,8 +211,13 @@ public sealed class InventoryService(ApplicationDbContext db, TimeProvider clock
 
     private async Task<Property> LockPropertyAsync(Guid id, Guid owner, CancellationToken cancellationToken)
     {
-        var property = await db.Properties.FromSqlInterpolated(
-                $"SELECT * FROM [Properties] WITH (UPDLOCK, HOLDLOCK) WHERE [Id] = {id} AND [OwnerManagerId] = {owner}")
+        // FromSql composition expects complex-property aliases rather than their mapped column names.
+        var property = await db.Properties.FromSqlInterpolated($"""
+                SELECT *, [DisplayName] AS [Address_DisplayName], [Line2] AS [Address_Line2],
+                    [StreetAddress] AS [Address_StreetAddress]
+                FROM [Properties] WITH (UPDLOCK, HOLDLOCK)
+                WHERE [Id] = {id} AND [OwnerManagerId] = {owner}
+                """)
             .SingleOrDefaultAsync(cancellationToken) ?? throw NotFound();
         if (property.ArchivedAt is not null) throw Archived();
         return property;

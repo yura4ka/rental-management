@@ -254,7 +254,10 @@ public sealed class ApplicationService(ApplicationDbContext db, TimeProvider clo
             var (_, property, _) = await LockInventoryAsync(unitId, ct);
             if (property.OwnerManagerId != user) throw Forbidden();
             var applications = await db.RentalApplications.FromSqlInterpolated($"""
-                SELECT * FROM [RentalApplications] WITH (UPDLOCK, HOLDLOCK)
+                SELECT *, [CurrentAddressDisplayName] AS [CurrentAddress_DisplayName],
+                    [CurrentAddressLine2] AS [CurrentAddress_Line2],
+                    [CurrentAddressStreetAddress] AS [CurrentAddress_StreetAddress]
+                FROM [RentalApplications] WITH (UPDLOCK, HOLDLOCK)
                 WHERE [UnitId] = {unitId} AND [Status] IN ('Draft', 'Submitted', 'InReview', 'Returned')
                 """).OrderBy(a => a.Id).ToListAsync(ct);
             var now = clock.GetUtcNow();
@@ -278,8 +281,13 @@ public sealed class ApplicationService(ApplicationDbContext db, TimeProvider clo
             .Select(u => (Guid?)u.PropertyId)
             .SingleOrDefaultAsync(ct)
             ?? throw NotFound();
-        var property = await db.Properties.FromSqlInterpolated(
-            $"SELECT * FROM [Properties] WITH (HOLDLOCK) WHERE [Id] = {propertyId}").SingleAsync(ct);
+        // FromSql composition expects complex-property aliases rather than their mapped column names.
+        var property = await db.Properties.FromSqlInterpolated($"""
+                SELECT *, [DisplayName] AS [Address_DisplayName], [Line2] AS [Address_Line2],
+                    [StreetAddress] AS [Address_StreetAddress]
+                FROM [Properties] WITH (HOLDLOCK) WHERE [Id] = {propertyId}
+                """)
+            .SingleAsync(ct);
         var unit = await db.Units.FromSqlInterpolated(
             $"SELECT * FROM [Units] WITH (HOLDLOCK) WHERE [Id] = {unitId}").SingleAsync(ct);
         var guard = await db.UnitLeaseGuards.FromSqlInterpolated(
