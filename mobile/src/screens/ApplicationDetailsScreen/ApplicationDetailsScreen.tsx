@@ -133,7 +133,7 @@ export function ApplicationDetailsScreen({
           )}
         {manager && (
           <ManagerApplicationActions
-            key={application.id}
+            key={`actions:${application.id}`}
             application={application}
             locked={locked}
           />
@@ -250,7 +250,7 @@ export function ApplicationDetailsScreen({
         </Card.Root>
         {manager && (
           <ManagerNoteField
-            key={application.id}
+            key={`note:${application.id}`}
             id={application.id}
             note={data.myNote}
             locked={noteLocked}
