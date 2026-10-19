@@ -23,7 +23,7 @@ cp ../.env.example ../.env
 Compose reads `.env`; the API does **not**. Set the matching API connection string through .NET user secrets:
 
 ```bash
-dotnet user-secrets set 'ConnectionStrings:DefaultConnection' 'Server=localhost,1433;Database=RentalManagement;User Id=sa;Password=<your-local-password>;Encrypt=True;TrustServerCertificate=True' --project src/RentalManagement.Api
+dotnet user-secrets set 'ConnectionStrings:DefaultConnection' 'Server=127.0.0.1,1433;Database=RentalManagement;User Id=sa;Password=<your-local-password>;Encrypt=True;TrustServerCertificate=True' --project src/RentalManagement.Api
 ```
 
 Set the demo password through secrets as well (12–128 characters, not only whitespace):
